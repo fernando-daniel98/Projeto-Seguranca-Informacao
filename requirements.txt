@@ -1,2 +1,5 @@
 kagglehub
 pandas
+tensorflow
+keras-cv
+matplotlib
