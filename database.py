@@ -31,13 +31,13 @@ print("📥 Baixando dataset NUAA via KaggleHub...")
 dataset_path = kagglehub.dataset_download(KAGGLE_DATASET)
 dataset_path = Path(dataset_path)
 
-print(f"✅ Dataset baixado em: {dataset_path}")
+print(f"Dataset baixado em: {dataset_path}")
 
 # =============================================================================
 # 2. MOSTRAR PARTE DA ESTRUTURA (DEBUG AMIGÁVEL)
 # =============================================================================
 
-print("\n🗂 Estrutura detectada (parcial):\n")
+print("\nEstrutura detectada (parcial):\n")
 max_print_dirs = 30
 count = 0
 for root, dirs, files in os.walk(dataset_path):
@@ -54,10 +54,10 @@ for root, dirs, files in os.walk(dataset_path):
 print("\n────────────────────────────────────────────\n")
 
 # =============================================================================
-# 3. LOCALIZA AUTOMATICAMENTE ClientRaw (REAL) e ImposterRaw (FAKE)
+# 3. Separar ClientRaw (REAL) e ImposterRaw (FAKE)
 # =============================================================================
 
-print("🔍 Procurando pastas 'ClientRaw' (real) e 'ImposterRaw' (fake)...")
+print("Procurando pastas 'ClientRaw' (real) e 'ImposterRaw' (fake)...")
 
 all_dirs = [p for p in dataset_path.rglob("*") if p.is_dir()]
 
@@ -66,18 +66,18 @@ imposter_dir = next((p for p in all_dirs if p.name.lower() == "imposterraw"), No
 
 if not client_dir or not imposter_dir:
     raise RuntimeError(
-        "\n❌ ERRO: Não encontrei as pastas 'ClientRaw' e 'ImposterRaw'.\n"
+        "\nERRO: Não encontrei as pastas 'ClientRaw' e 'ImposterRaw'.\n"
         "Confira a estrutura impressa acima e ajuste os caminhos manualmente se necessário."
     )
 
-print(f"✅ Pasta de IMAGENS REAIS encontrada em: {client_dir}")
-print(f"✅ Pasta de IMAGENS FALSAS encontrada em: {imposter_dir}")
+print(f" Pasta de IMAGENS REAIS encontrada em: {client_dir}")
+print(f" Pasta de IMAGENS FALSAS encontrada em: {imposter_dir}")
 
 # =============================================================================
 # 4. CRIA ESTRUTURA train / val / test
 # =============================================================================
 
-print("\n📂 Criando estrutura dataset/train, val, test...")
+print("\nCriando estrutura dataset/train, val, test...")
 
 for split_name in ["train", "val", "test"]:
     for label in ["real", "fake"]:
@@ -91,7 +91,7 @@ def split_and_copy(src_dir: Path, label: str):
     """Copia TODAS as imagens .jpg recursivamente para train/val/test."""
     images = [img for img in src_dir.rglob("*.jpg")]
     if len(images) == 0:
-        raise RuntimeError(f"❌ Nenhuma imagem .jpg encontrada em {src_dir}")
+        raise RuntimeError(f"Nenhuma imagem .jpg encontrada em {src_dir}")
 
     random.shuffle(images)
 
@@ -124,10 +124,10 @@ split_and_copy(client_dir, "real")
 split_and_copy(imposter_dir, "fake")
 
 # =============================================================================
-# 6. GERAR dataset.csv
+# GERAR dataset.csv
 # =============================================================================
 
-print("\n📝 Gerando dataset.csv...")
+print("\nGerando dataset.csv...")
 
 rows = []
 for split_name in ["train", "val", "test"]:
@@ -137,12 +137,12 @@ for split_name in ["train", "val", "test"]:
             rows.append([str(img), split_name, label])
 
 if not rows:
-    raise RuntimeError("❌ Nenhuma imagem foi copiada para a pasta dataset/. Verifique o script.")
+    raise RuntimeError("Nenhuma imagem foi copiada para a pasta dataset/. Verifique o script.")
 
 df = pd.DataFrame(rows, columns=["filepath", "split", "label"])
 df.to_csv("dataset.csv", index=False)
 
-print("\n✅ Processo concluído com sucesso!")
-print(f"📁 Dataset organizado em: {OUTPUT_DIR.resolve()}")
-print("📊 CSV criado: dataset.csv")
-print("🚀 Agora é só usar essa estrutura no seu script de treinamento.\n")
+print("\nProcesso concluído com sucesso!")
+print(f"Dataset organizado em: {OUTPUT_DIR.resolve()}")
+print("CSV criado: dataset.csv")
+print("Dados prontos para utilizar.\n")
