@@ -3,3 +3,8 @@ pandas
 tensorflow
 keras-cv
 matplotlib
+opencv-python
+scikit-learn
+joblib
+seaborn
+numpy

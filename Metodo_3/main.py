@@ -1,1 +1,0 @@
-# Histogramas em espaços de cor + classificador simples
