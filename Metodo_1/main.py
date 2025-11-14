@@ -1,1 +1,0 @@
-#Este método implementa o método clássico LBP + SVM

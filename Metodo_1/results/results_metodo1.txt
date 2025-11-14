@@ -1,0 +1,24 @@
+=== Método 1: LBP + SVM ===
+
+Acurácia: 0.9945
+Precisão (classe real=1): 0.9941
+Recall   (classe real=1): 0.9922
+
+Matriz de confusão (linhas = verdade, colunas = predição)
+[[749   3]
+ [  4 507]]
+
+FAR  (fake aceito como real): 0.0040
+FRR  (real rejeitado como fake): 0.0078
+HTER: 0.0059
+EER (aprox.): 0.0063
+
+Relatório de classificação:
+              precision    recall  f1-score   support
+
+    fake (0)       0.99      1.00      1.00       752
+    real (1)       0.99      0.99      0.99       511
+
+    accuracy                           0.99      1263
+   macro avg       0.99      0.99      0.99      1263
+weighted avg       0.99      0.99      0.99      1263
