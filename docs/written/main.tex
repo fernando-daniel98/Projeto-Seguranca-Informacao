@@ -1,0 +1,273 @@
+% abtex2-modelo-artigo.tex, v-1.9.2 laurocesar
+% Copyright 2012-2014 by abnTeX2 group at http://abntex2.googlecode.com/ 
+%
+
+% ------------------------------------------------------------------------
+% ------------------------------------------------------------------------
+% abnTeX2: Modelo de Artigo Acadêmico em conformidade com
+% ABNT NBR 6022:2003: Informação e documentação - Artigo em publicação 
+% periódica científica impressa - Apresentação
+% ------------------------------------------------------------------------
+% ------------------------------------------------------------------------
+
+\documentclass[
+	% -- opções da classe memoir --
+	article,			% indica que é um artigo acadêmico
+	11pt,				% tamanho da fonte
+	oneside,			% para impressão apenas no verso. Oposto a twoside
+	a4paper,			% tamanho do papel. 
+	% -- opções da classe abntex2 --
+	%chapter=TITLE,		% títulos de capítulos convertidos em letras maiúsculas
+	%section=TITLE,		% títulos de seções convertidos em letras maiúsculas
+	%subsection=TITLE,	% títulos de subseções convertidos em letras maiúsculas
+	%subsubsection=TITLE % títulos de subsubseções convertidos em letras maiúsculas
+	% -- opções do pacote babel --
+	english,			% idioma adicional para hifenização
+	brazil,				% o último idioma é o principal do documento
+	sumario=tradicional
+	]{abntex2}
+
+
+% ---
+% PACOTES
+% ---
+
+% ---
+% Pacotes fundamentais 
+% ---
+\usepackage{lmodern}			% Usa a fonte Latin Modern
+\usepackage[T1]{fontenc}		% Selecao de codigos de fonte.
+\usepackage[utf8]{inputenc}		% Codificacao do documento (conversão automática dos acentos)
+\usepackage{indentfirst}		% Indenta o primeiro parágrafo de cada seção.
+\usepackage{nomencl} 			% Lista de simbolos
+\usepackage{color}				% Controle das cores
+\usepackage{graphicx}			% Inclusão de gráficos
+\usepackage{microtype} 			% para melhorias de justificação
+% ---
+		
+% ---
+% Pacotes adicionais, usados apenas no âmbito do Modelo Canônico do abnteX2
+% ---
+\usepackage{lipsum}				% para geração de dummy text
+% ---
+		
+% ---
+% Pacotes de citações
+% ---
+\usepackage[brazilian,hyperpageref]{backref}	 % Paginas com as citações na bibl
+\usepackage[alf]{abntex2cite}	% Citações padrão ABNT
+% ---
+
+% ---
+% Configurações do pacote backref
+% Usado sem a opção hyperpageref de backref
+\renewcommand{\backrefpagesname}{Citado na(s) página(s):~}
+% Texto padrão antes do número das páginas
+\renewcommand{\backref}{}
+% Define os textos da citação
+\renewcommand*{\backrefalt}[4]{
+	\ifcase #1 %
+		Nenhuma citação no texto.%
+	\or
+		Citado na página #2.%
+	\else
+		Citado #1 vezes nas páginas #2.%
+	\fi}%
+% ---
+
+% ---
+% Informações de dados para CAPA e FOLHA DE ROSTO
+% ---
+\titulo{Análise Comparativa de Métodos para Detecção de\\ Face Anti-Spoofing: LBP, Deep Learning e Histogramas de Cor}
+\autor{Fernando Daniel Marelino \and Ícaro Travain Darwich da Rocha \and Marcos Aquino \and Mateus Vespasiano de Castro}
+\local{São Paulo, Brasil}
+\data{Dezembro de 2025}
+% ---
+
+% ---
+% Configurações de aparência do PDF final
+
+% alterando o aspecto da cor azul
+\definecolor{blue}{RGB}{41,5,195}
+
+% informações do PDF
+\makeatletter
+\hypersetup{
+    pdftitle={Analise Comparativa de Metodos para Deteccao de Face Anti-Spoofing},
+    pdfauthor={Fernando Daniel Marelino; Icaro Travain; Marcos Aquino; Mateus Vespasiano},
+    pdfsubject={Deteccao de Face Anti-Spoofing com Machine Learning},
+    pdfcreator={LaTeX with abnTeX2},
+    pdfkeywords={face anti-spoofing}{deep learning}{SVM}{histogramas de cor}{segurança da informação}, 
+    colorlinks=true,       		% false: boxed links; true: colored links
+    linkcolor=blue,          	% color of internal links
+    citecolor=blue,        		% color of links to bibliography
+    filecolor=magenta,      		% color of file links
+    urlcolor=blue,
+    bookmarksdepth=4
+}
+\makeatother
+
+% Provisório: evita "Undefined control sequence \theforeigntitle"
+% quando a classe tenta montar metadados em algumas versões do abntex2.
+% Se a sua versão do abntex define esses comandos, estas linhas não atrapalham.
+\providecommand{\theforeigntitle}{}
+\providecommand{\foreigntitle}{}
+\makeatletter
+% Outros fallbacks úteis para prevenir "Undefined control sequence"
+\providecommand{\thetitle}{}
+\providecommand{\theauthor}{}
+\providecommand{\theaffiliation}{}
+\providecommand{\thekeywords}{}
+\providecommand{\resumoname}{}
+\providecommand{\@thanks}{}
+\providecommand{\@bs@thanks}{}
+\makeatother
+% --- 
+
+% ---
+% compila o indice
+% ---
+\makeindex
+% ---
+
+% ---
+% Altera as margens padrões
+% ---
+\setlrmarginsandblock{3cm}{3cm}{*}
+\setulmarginsandblock{3cm}{3cm}{*}
+\checkandfixthelayout
+% ---
+
+% --- 
+% Espaçamentos entre linhas e parágrafos 
+% --- 
+
+% O tamanho do parágrafo é dado por:
+\setlength{\parindent}{1.3cm}
+
+% Controle do espaçamento entre um parágrafo e outro:
+\setlength{\parskip}{0.2cm}  % tente também \onelineskip
+
+% Espaçamento simples
+\SingleSpacing
+
+% ----
+% Início do documento
+% ----
+\begin{document}
+
+% Retira espaço extra obsoleto entre as frases.
+\frenchspacing 
+
+% ----------------------------------------------------------
+% ELEMENTOS PRÉ-TEXTUAIS
+% ----------------------------------------------------------
+
+%---
+%
+% Se desejar escrever o artigo em duas colunas, descomente a linha abaixo
+% e a linha com o texto ``FIM DE ARTIGO EM DUAS COLUNAS''.
+% \twocolumn[    		% INICIO DE ARTIGO EM DUAS COLUNAS
+%
+%---
+% página de titulo
+\maketitle
+
+% resumo em português
+\begin{resumoumacoluna}
+    Este trabalho apresenta uma análise comparativa de três métodos distintos para detecção de ataques de apresentação facial (\textit{face anti-spoofing}), um problema crítico em sistemas de autenticação biométrica. Foram avaliados: (1) Local Binary Patterns (LBP) com classificador SVM, (2) Transfer Learning utilizando a arquitetura VGG16 pré-treinada no ImageNet, e (3) Histogramas de cor nos espaços HSV e YCbCr combinados com SVM. Os experimentos foram conduzidos no dataset NUAA, amplamente utilizado na literatura. ... [falar brevemente sobre os resultados e concluir ao final]
+
+    \vspace{\onelineskip}
+
+    \noindent
+    \textbf{Palavras-chave}: face anti-spoofing. NUAA. autenticação biométrica.
+\end{resumoumacoluna}
+
+% ]  				% FIM DE ARTIGO EM DUAS COLUNAS
+% ---
+
+% ----------------------------------------------------------
+% ELEMENTOS TEXTUAIS
+% ----------------------------------------------------------
+\textual
+
+% ----------------------------------------------------------
+% Introdução
+% ----------------------------------------------------------
+\section*{Introdução}
+\addcontentsline{toc}{section}{Introdução}
+
+A autenticação biométrica baseada em reconhecimento facial tem se tornado cada vez mais prevalente em sistemas de segurança, desde o desbloqueio de smartphones até controle de acesso em ambientes corporativos e governamentais. Entretanto, essa crescente adoção também ampliou a superfície de ataque para tentativas de falsificação, onde adversários tentam enganar sistemas de reconhecimento facial utilizando fotografias impressas, vídeos reproduzidos em telas ou máscaras 3D.
+
+Os ataques de apresentação facial, também conhecidos como \textit{face spoofing attacks}, representam uma ameaça significativa à integridade de sistemas biométricos \cite{galbally2014}. A detecção desses ataques, denominada \textit{Presentation Attack Detection} (PAD) ou \textit{face anti-spoofing}, tornou-se uma área de pesquisa ativa em visão computacional e segurança da informação.
+
+Diversas abordagens têm sido propostas na literatura para detectar ataques de apresentação facial. Métodos baseados em textura, como \textit{Local Binary Patterns} (LBP), exploram diferenças de micro-texturas entre faces reais e falsificadas \cite{chingovska2012}. Abordagens baseadas em análise de cor \cite{DBLP:journals/corr/BoulkenafetKH15} aproveitam as distorções cromáticas introduzidas pelo processo de impressão ou exibição em telas. Mais recentemente, técnicas de \textit{deep learning} baseadas em transferência de aprendizado e em estratégias de fusão/seleção de \textit{deep features} têm demonstrado resultados promissores, aumentando robustez e acurácia em tarefas de reconhecimento visual \cite{rashid2020sustainable}.
+
+Este trabalho apresenta uma análise comparativa de três métodos distintos para detecção de face anti-spoofing: (1) Local Binary Patterns combinado com Support Vector Machine (LBP + SVM), representando a abordagem clássica baseada em textura; (2) Transfer Learning com VGG16, representando o paradigma de \textit{deep learning}; e (3) Histogramas de cor nos espaços HSV e YCbCr combinados com SVM, explorando características cromáticas. Os experimentos foram conduzidos no dataset NUAA \cite{nuaa2010,tan2010}, um \textit{benchmark} amplamente utilizado para avaliação de métodos de anti-spoofing.
+
+O objetivo principal é avaliar comparativamente o desempenho dessas três abordagens em termos de acurácia, \textit{Half Total Error Rate} (HTER) e \textit{Equal Error Rate} (EER), identificando vantagens e limitações de cada método. Os resultados obtidos contribuem para o entendimento de quais características são mais efetivas para a detecção de ataques de impressão fotográfica.
+
+% ----------------------------------------------------------
+% Seção de explicações
+% ----------------------------------------------------------
+\section{Revisão da Literatura}
+
+
+\section{Metodologia}
+
+% ---
+% Finaliza a parte no bookmark do PDF, para que se inicie o bookmark na raiz
+% ---
+\bookmarksetup{startatroot}% 
+% ---
+
+% ---
+% Seção de Experimentos
+% ---
+\section{Experimentos e Resultados}
+
+% ---
+% Conclusão
+% ---
+\section*{Conclusão}
+\addcontentsline{toc}{section}{Conclusão}
+
+% ----------------------------------------------------------
+% ELEMENTOS PÓS-TEXTUAIS
+% ----------------------------------------------------------
+\postextual
+
+% ---
+% Título e resumo em língua estrangeira
+% ---
+
+% \twocolumn[    		% INICIO DE ARTIGO EM DUAS COLUNAS
+
+% titulo em inglês
+\titulo{Comparative Analysis of Face Anti-Spoofing Detection Methods: LBP, Deep Learning and Color Histograms}
+\emptythanks
+\maketitle
+
+% resumo em português
+\renewcommand{\resumoname}{Abstract}
+\begin{resumoumacoluna}
+ \begin{otherlanguage*}{english}
+   This work presents a comparative analysis of three distinct methods for face anti-spoofing detection, a critical problem in biometric authentication systems. The following methods were evaluated: (1) Local Binary Patterns (LBP) with SVM classifier, (2) Transfer Learning using VGG16 architecture pre-trained on ImageNet, and (3) Color histograms in HSV and YCbCr color spaces combined with SVM. The experiments were conducted on the NUAA dataset, widely used in the literature. Method 3 (Color Histograms + SVM) achieved the best results, reaching 99.13\% accuracy, 0.98\% HTER, and 0.66\% EER. The results demonstrate that color-based features are highly discriminative for distinguishing real faces from photo print attacks, outperforming texture-based and deep learning approaches in this specific scenario.
+
+   \vspace{\onelineskip}
+ 
+   \noindent
+   \textbf{Keywords}: face anti-spoofing. presentation attack detection. machine learning. SVM. deep learning. biometrics.
+ \end{otherlanguage*}  
+\end{resumoumacoluna}
+
+% ]  				% FIM DE ARTIGO EM DUAS COLUNAS
+% ---
+
+% ----------------------------------------------------------
+% Referências bibliográficas
+% ----------------------------------------------------------
+\bibliographystyle{abntex2-alf}
+\bibliography{abntex2-modelo-references}
+
+\end{document}
