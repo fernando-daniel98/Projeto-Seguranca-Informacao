@@ -9,6 +9,8 @@ Este projeto tem como objetivo fazer avaliações e análises comparativas entre
 - Precisão 
 - Recall
 
+- AUC (ROC)
+
 Matriz de confusão
 
 
@@ -137,3 +139,10 @@ Contribuições
 - Observações
   - Caso o download do Kaggle falhe, baixe manualmente e coloque as pastas ClientRaw/ImposterRaw dentro de uma pasta local, ou ajuste o caminho em `database.py`.
   - Verifique o CSV `dataset.csv` gerado pelo script para confirmar paths absolutos/relativos usados pelos scripts subsequentes.
+
+## Nota sobre particionamento (evitar vazamento)
+
+Para o dataset NUAA, é importante evitar que imagens do mesmo sujeito/sessão apareçam em treino/val/test, pois isso pode inflar muito os resultados.
+
+- O [Metodo_1/extract_lbp.py](Metodo_1/extract_lbp.py) suporta refazer os splits a partir de toda a base com `--split-mode group-subject` (recomendado) ou `--split-mode group-session`.
+- O [Metodo_1/svm.py](Metodo_1/svm.py) suporta validação cruzada por sujeito via `--subject-cv` (GroupKFold).

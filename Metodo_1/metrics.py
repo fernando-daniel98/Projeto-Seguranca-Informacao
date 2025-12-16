@@ -8,6 +8,7 @@ from sklearn.metrics import (
     recall_score,
     confusion_matrix,
     classification_report,
+    roc_auc_score,
     roc_curve,
 )
 import matplotlib.pyplot as plt
@@ -64,6 +65,8 @@ def main():
     eer_idx = np.nanargmin(np.abs(fnr - fpr))
     eer = (fpr[eer_idx] + fnr[eer_idx]) / 2.0
 
+    auc = roc_auc_score(y_test, y_proba)
+
     report = classification_report(
         y_test, y_pred, target_names=["fake (0)", "real (1)"]
     )
@@ -80,13 +83,14 @@ def main():
         f.write(f"FRR  (real rejeitado como fake): {frr:.4f}\n")
         f.write(f"HTER: {hter:.4f}\n")
         f.write(f"EER (aprox.): {eer:.4f}\n\n")
+        f.write(f"AUC (ROC): {auc:.4f}\n\n")
         f.write("Relatório de classificação:\n")
         f.write(report)
 
     print(f"Resultados salvos em {txt_path}")
     print(
         f"Acurácia: {acc:.4f} | Precisão: {prec:.4f} | "
-        f"Recall: {rec:.4f} | HTER: {hter:.4f} | EER ~ {eer:.4f}"
+        f"Recall: {rec:.4f} | HTER: {hter:.4f} | EER ~ {eer:.4f} | AUC: {auc:.4f}"
     )
 
     # ---------- Plot da matriz de confusão ----------
@@ -124,7 +128,7 @@ def main():
     # ---------- Plot da curva ROC ----------
     fig_roc_path = results_dir / "roc_curve_metodo1.png"
     fig2, ax2 = plt.subplots()
-    ax2.plot(fpr, tpr, label="ROC (AUC não calculada)")
+    ax2.plot(fpr, tpr, label=f"ROC (AUC={auc:.4f})")
     ax2.plot([0, 1], [0, 1], "--")
     ax2.set_xlabel("FPR")
     ax2.set_ylabel("TPR")

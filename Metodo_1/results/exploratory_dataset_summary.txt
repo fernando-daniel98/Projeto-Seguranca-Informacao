@@ -1,0 +1,37 @@
+=== Exploratory Data Analysis (Metodo_1) ===
+Base dir:   /home/mateusvdcastro/Projeto-Seguranca-Informacao/Metodo_1
+Dataset dir:/home/mateusvdcastro/Projeto-Seguranca-Informacao/Metodo_1/dataset
+
+Total de imagens (filesystem): 12614
+
+--- Contagem por split/label (filesystem) ---
+split  fake  real  total
+-----  ----  ----  -----
+test   752   511   1263 
+train  5256  3573  8829 
+val    1501  1021  2522 
+TOTAL  7509  5105  12614
+
+--- Distribuição de extensões (filesystem) ---
+{'.jpg': 12614}
+
+--- Verificação com CSV ---
+CSV path: /home/mateusvdcastro/Projeto-Seguranca-Informacao/Metodo_1/dataset.csv
+Total de linhas no CSV: 12614
+
+--- Contagem por split/label (CSV) ---
+split  fake  real  total
+-----  ----  ----  -----
+test   752   511   1263 
+train  5256  3573  8829 
+val    1501  1021  2522 
+TOTAL  7509  5105  12614
+
+CSV->FS: arquivos listados no CSV mas NÃO encontrados no filesystem: 0
+FS->CSV: arquivos no filesystem mas NÃO presentes no CSV: 0
+--- Amostra de imagens (leitura + stats) ---
+Amostra: 50 de 12614
+
+[INFO] Pacotes 'opencv-python' e 'numpy' não parecem instalados; pulei leitura de imagens.
+      Para habilitar stats de imagem, instale as dependências: pip install -r ../requirements.txt
+

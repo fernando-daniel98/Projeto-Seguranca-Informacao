@@ -23,7 +23,7 @@ def extract_lbp_image(image_path, radius=2, n_points=None, method="uniform", res
     if n_points is None:
         n_points = 8 * radius
 
-    img = cv2.imread(str(image_path))
+    img = cv2.imread(str(image_path)) 
     if img is None:
         raise ValueError(f"Não foi possível ler a imagem: {image_path}")
 
