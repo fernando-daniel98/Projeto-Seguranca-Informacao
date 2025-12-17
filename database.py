@@ -1,3 +1,11 @@
+"""
+database.py
+Baixa o dataset NUAA (aleksandrpikul222/nuaaaa) via KaggleHub,
+detecta automaticamente ClientRaw (real) e ImposterRaw (fake),
+organiza em dataset/train, dataset/val, dataset/test
+e gera um CSV com caminhos, split e label.
+"""
+
 import os
 import random
 import shutil
