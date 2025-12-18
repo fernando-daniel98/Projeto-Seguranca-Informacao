@@ -377,7 +377,8 @@ def main() -> int:
     args = parser.parse_args()
 
     base_dir = Path(__file__).resolve().parent
-    dataset_dir = Path(args.dataset_dir).resolve() if args.dataset_dir else (base_dir / "dataset")
+    # Usa dataset da raiz do projeto (gerado por database.py) por padrão
+    dataset_dir = Path(args.dataset_dir).resolve() if args.dataset_dir else (base_dir.parent / "dataset")
 
     results_dir = base_dir / "results"
     summary_path = results_dir / "exploratory_dataset_summary.txt"

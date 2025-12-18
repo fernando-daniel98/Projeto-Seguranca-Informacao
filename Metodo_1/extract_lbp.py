@@ -29,15 +29,26 @@ def _parse_nuaa_filename(file_path: Path) -> Tuple[int, int]:
     é o sujeito (0001..0015) e o 4º campo é uma sessão (01/02/03).
 
     Ex.: 0011_01_07_03_202.jpg -> subject=11, session=3
+    Quando organizado por database.py, o formato é: 0011_0011_01_07_03_202.jpg
+    onde o sujeito aparece duplicado no início.
     """
 
     stem = file_path.stem
     parts = stem.split("_")
-    if len(parts) < 4:
+    
+    # Suporta ambos formatos: original (0011_01_07_03_202.jpg) 
+    # e organizado por database.py (0011_0011_01_07_03_202.jpg)
+    if len(parts) >= 5 and parts[0] == parts[1]:
+        # Formato database.py: subject_subject_...
+        subject = int(parts[0])
+        session = int(parts[4])
+    elif len(parts) >= 4:
+        # Formato original: subject_...
+        subject = int(parts[0])
+        session = int(parts[3])
+    else:
         raise ValueError(f"Nome de arquivo NUAA inesperado: {file_path.name}")
 
-    subject = int(parts[0])
-    session = int(parts[3])
     return subject, session
 
 
@@ -299,7 +310,8 @@ def main():
 
     base_dir = Path(__file__).resolve().parent
     print(f"Base directory: {base_dir}")
-    dataset_path = base_dir / "dataset"
+    # Usa dataset da raiz do projeto (gerado por database.py)
+    dataset_path = base_dir.parent / "dataset"
     print(f"Dataset path: {dataset_path}")
     output_path = base_dir / "data"
     print(f"Output path: {output_path}")
