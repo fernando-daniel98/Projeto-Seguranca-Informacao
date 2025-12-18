@@ -1,0 +1,39 @@
+============================================================
+Método 1: LBP + SVM - Teste no CASIA-FASD (dataset2)
+============================================================
+
+Dataset: /home/mateusvdcastro/Projeto-Seguranca-Informacao/dataset2
+Split: test
+Total de imagens: 2408
+  Real (1): 591
+  Fake (0): 1817
+
+------------------------------------------------------------
+MÉTRICAS DE DESEMPENHO
+------------------------------------------------------------
+Acurácia: 0.7313
+Precisão (classe real=1): 0.0000
+Recall   (classe real=1): 0.0000
+
+Matriz de confusão (linhas = verdade, colunas = predição)
+[[1761   56]
+ [ 591    0]]
+
+FAR  (fake aceito como real): 0.0308
+FRR  (real rejeitado como fake): 1.0000
+HTER: 0.5154
+EER (aprox.): 0.5594
+
+AUC (ROC): 0.4159
+
+------------------------------------------------------------
+RELATÓRIO DE CLASSIFICAÇÃO
+------------------------------------------------------------
+              precision    recall  f1-score   support
+
+    fake (0)       0.75      0.97      0.84      1817
+    real (1)       0.00      0.00      0.00       591
+
+    accuracy                           0.73      2408
+   macro avg       0.37      0.48      0.42      2408
+weighted avg       0.56      0.73      0.64      2408
