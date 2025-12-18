@@ -1,5 +1,5 @@
-dataset
-dataset.csv
+dataset*
+dataset_seed_*
 __pycache__
 .venv
-contagem_real_pastas.png
+contagem*
