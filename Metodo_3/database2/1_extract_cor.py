@@ -2,8 +2,7 @@ import os
 import cv2
 import numpy as np
 
-# Configuração das 5 seeds conforme database.py
-SEEDS = [42, 10, 23, 56, 89]
+SEEDS = [42]
 categorias = {'real': 1, 'fake': 0}
 
 def extrair_caracteristicas_cor(caminho_imagem, bins=32):
@@ -34,11 +33,11 @@ def processar_diretorio(diretorio_base):
 
 for s in SEEDS:
     print(f"\n--- Extraindo Features para SEED {s} ---")
-    base_dir = f"./dataset_seed_{s}"
+    base_dir = f"./dataset2"
     X_train, y_train = processar_diretorio(os.path.join(base_dir, 'train'))
     X_test, y_test = processar_diretorio(os.path.join(base_dir, 'test'))
     
-    out_path = f'./Metodo_3/data/seed_{s}'
+    out_path = f'./Metodo_3/database2/data/seed_{s}'
     os.makedirs(out_path, exist_ok=True)
     np.save(f'{out_path}/X_train.npy', X_train)
     np.save(f'{out_path}/y_train.npy', y_train)

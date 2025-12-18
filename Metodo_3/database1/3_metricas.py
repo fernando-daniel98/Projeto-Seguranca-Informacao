@@ -72,9 +72,9 @@ print("Iniciando avaliação das 5 sementes...")
 
 for s in SEEDS:
     # 1. Carregar dados e modelo da semente atual
-    data_path = f'./Metodo_3/data/seed_{s}'
-    model_path = f'./Metodo_3/models/seed_{s}/metodo3_svm.pkl'
-    results_dir = f'./Metodo_3/results/seed_{s}'
+    data_path = f'./Metodo_3/database1/data/seed_{s}'
+    model_path = f'./Metodo_3/database1/models/seed_{s}/metodo3_svm.pkl'
+    results_dir = f'./Metodo_3/database1/results/seed_{s}'
     os.makedirs(results_dir, exist_ok=True)
     
     X_test = np.load(f'{data_path}/X_test.npy')
