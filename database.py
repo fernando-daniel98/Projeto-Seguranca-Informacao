@@ -10,139 +10,107 @@ import os
 import random
 import shutil
 from pathlib import Path
-
 import kagglehub
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# =============================================================================
 # CONFIGURAÇÕES
-# =============================================================================
-
 KAGGLE_DATASET = "aleksandrpikul222/nuaaaa"
-OUTPUT_DIR = Path("dataset")          # pasta final organizada
-SPLIT = (0.7, 0.2, 0.1)               # train, val, test
-random.seed(42)                       # reprodutibilidade
+OUTPUT_DIR = Path("dataset")
+# Separação por IDs para evitar "Subject Leakage" 
+SUBJECTS_VAL = ['0004', '0009'] 
+SUBJECTS_TEST = ['0012', '0013', '0015'] 
 
-# =============================================================================
-# 1. DOWNLOAD DO DATASET
-# =============================================================================
+random.seed(42)
 
-print("📥 Baixando dataset NUAA via KaggleHub...")
-dataset_path = kagglehub.dataset_download(KAGGLE_DATASET)
-dataset_path = Path(dataset_path)
+# 1. DOWNLOAD
+print("Baixando dataset...")
+dataset_path = Path(kagglehub.dataset_download(KAGGLE_DATASET))
 
-print(f"Dataset baixado em: {dataset_path}")
-
-# =============================================================================
-# 2. MOSTRAR PARTE DA ESTRUTURA (DEBUG AMIGÁVEL)
-# =============================================================================
-
-print("\nEstrutura detectada (parcial):\n")
-max_print_dirs = 30
-count = 0
-for root, dirs, files in os.walk(dataset_path):
-    if count >= max_print_dirs:
-        print("    ...")
-        break
-    level = root.replace(str(dataset_path), "").count(os.sep)
-    indent = " " * 4 * level
-    print(f"{indent}{os.path.basename(root)}/")
-    for f in files[:3]:
-        print(f"{indent}    {f}")
-    count += 1
-
-print("\n────────────────────────────────────────────\n")
-
-# =============================================================================
-# 3. Separar ClientRaw (REAL) e ImposterRaw (FAKE)
-# =============================================================================
-
-print("Procurando pastas 'ClientRaw' (real) e 'ImposterRaw' (fake)...")
-
+# 2. LOCALIZAÇÃO DAS PASTAS
 all_dirs = [p for p in dataset_path.rglob("*") if p.is_dir()]
-
 client_dir = next((p for p in all_dirs if p.name.lower() == "clientraw"), None)
 imposter_dir = next((p for p in all_dirs if p.name.lower() == "imposterraw"), None)
 
-if not client_dir or not imposter_dir:
-    raise RuntimeError(
-        "\nERRO: Não encontrei as pastas 'ClientRaw' e 'ImposterRaw'.\n"
-        "Confira a estrutura impressa acima e ajuste os caminhos manualmente se necessário."
-    )
-
-print(f" Pasta de IMAGENS REAIS encontrada em: {client_dir}")
-print(f" Pasta de IMAGENS FALSAS encontrada em: {imposter_dir}")
-
-# =============================================================================
-# 4. CRIA ESTRUTURA train / val / test
-# =============================================================================
-
-print("\nCriando estrutura dataset/train, val, test...")
-
-for split_name in ["train", "val", "test"]:
+# 3. ESTRUTURA DE PASTAS
+for split in ["train", "val", "test"]:
     for label in ["real", "fake"]:
-        (OUTPUT_DIR / split_name / label).mkdir(parents=True, exist_ok=True)
+        (OUTPUT_DIR / split / label).mkdir(parents=True, exist_ok=True)
 
-# =============================================================================
-# 5. FUNÇÃO PARA SPLIT + CÓPIA
-# =============================================================================
+# 4. ORGANIZAÇÃO E BALANCEAMENTO
+def collect_images_by_split(src_dir: Path):
+    """Agrupa caminhos de imagens por split baseado no ID do sujeito."""
+    data_map = {"train": [], "val": [], "test": []}
+    subject_folders = [f for f in src_dir.iterdir() if f.is_dir()]
+    
+    for folder in subject_folders:
+        s_id = folder.name
+        split_name = "test" if s_id in SUBJECTS_TEST else ("val" if s_id in SUBJECTS_VAL else "train")
+        data_map[split_name].extend(list(folder.glob("*.jpg")))
+    return data_map
 
-def split_and_copy(src_dir: Path, label: str):
-    """Copia TODAS as imagens .jpg recursivamente para train/val/test."""
-    images = [img for img in src_dir.rglob("*.jpg")]
-    if len(images) == 0:
-        raise RuntimeError(f"Nenhuma imagem .jpg encontrada em {src_dir}")
+print("Processando e balanceando o Treino...")
+reais_map = collect_images_by_split(client_dir)
+fakes_map = collect_images_by_split(imposter_dir)
 
-    random.shuffle(images)
+# Balanceamento apenas no TRAIN (Undersampling da classe majoritária)
+min_train = min(len(reais_map["train"]), len(fakes_map["train"]))
+random.shuffle(reais_map["train"])
+random.shuffle(fakes_map["train"])
+reais_map["train"] = reais_map["train"][:min_train]
+fakes_map["train"] = fakes_map["train"][:min_train]
 
-    n = len(images)
-    n_train = int(n * SPLIT[0])
-    n_val = int(n * SPLIT[1])
-    n_test = n - n_train - n_val
-
-    splits = {
-        "train": images[:n_train],
-        "val": images[n_train:n_train + n_val],
-        "test": images[n_train + n_val:],
-    }
-
-    print(f"📸 {label.upper()}: {n} imagens -> "
-          f"{len(splits['train'])} train, {len(splits['val'])} val, {len(splits['test'])} test")
-
-    for split_name, file_list in splits.items():
-        for img in file_list:
-            dest = OUTPUT_DIR / split_name / label / img.name
-            # se rodar mais de uma vez, evita erro de arquivo já existente
+def copy_files(files_dict, label):
+    for split, files in files_dict.items():
+        for img in files:
+            # Nome único: sujeito_nomeoriginal.jpg
+            subject_id = img.parent.name
+            dest = OUTPUT_DIR / split / label / f"{subject_id}_{img.name}"
             if not dest.exists():
                 shutil.copy2(img, dest)
 
+copy_files(reais_map, "real")
+copy_files(fakes_map, "fake")
 
-# Real (ClientRaw) = label "real"
-split_and_copy(client_dir, "real")
+# 5. CSV E GRÁFICO (ORDEM CRESCENTE)
+def get_folder_counts(base_dir='dataset'):
+    data = []
+    # Percorre as subpastas físicas
+    for split in ['train', 'val', 'test']:
+        for label in ['real', 'fake']:
+            path = os.path.join(base_dir, split, label)
+            if os.path.exists(path):
+                # Conta arquivos reais no diretório
+                count = len([f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))])
+                data.append({'split': split, 'label': label, 'Quantidade': count})
+    return pd.DataFrame(data)
 
-# Fake (ImposterRaw) = label "fake"
-split_and_copy(imposter_dir, "fake")
+df_folders = get_folder_counts()
 
-# =============================================================================
-# GERAR dataset.csv
-# =============================================================================
+if not df_folders.empty:
+    split_totals = df_folders.groupby('split')['Quantidade'].sum().sort_values().index.tolist()
+    
+    plt.figure(figsize=(10, 6))
+    sns.set_style("whitegrid")
+    ax = sns.barplot(data=df_folders, x='split', y='Quantidade', hue='label', 
+                    order=split_totals, palette={'real': 'forestgreen', 'fake': 'firebrick'})
 
-print("\nGerando dataset.csv...")
+    for p in ax.patches:
+        height = p.get_height()
+        ax.annotate(f'{int(height)}', (p.get_x() + p.get_width() / 2., height),
+                    ha='center', va='bottom', fontweight='bold', xytext=(0, 5), textcoords='offset points')
 
-rows = []
-for split_name in ["train", "val", "test"]:
-    for label in ["real", "fake"]:
-        folder = OUTPUT_DIR / split_name / label
-        for img in folder.glob("*.jpg"):
-            rows.append([str(img), split_name, label])
-
-if not rows:
-    raise RuntimeError("Nenhuma imagem foi copiada para a pasta dataset/. Verifique o script.")
-
-df = pd.DataFrame(rows, columns=["filepath", "split", "label"])
-df.to_csv("dataset.csv", index=False)
-
-print("\nProcesso concluído com sucesso!")
-print(f"Dataset organizado em: {OUTPUT_DIR.resolve()}")
-print("CSV criado: dataset.csv")
-print("Dados prontos para utilizar.\n")
+    plt.title("Quantidade de Fotos", fontsize=14)
+    plt.ylabel("Número de Arquivos")
+    plt.xlabel("Conjunto")
+    
+    plt.savefig("contagem_real_pastas.png", dpi=300, bbox_inches='tight')
+    
+    print("\nCONTAGEM DE FOTOS:")
+    print("-" * 30)
+    print(df_folders.to_string(index=False))
+    print("-" * 30)
+    print(f"Ordem no gráfico (Crescente): {split_totals}")
+else:
+    print("Erro: A pasta 'dataset' não foi encontrada. Certifique-se de que o script 'database.py' foi executado com sucesso.")
