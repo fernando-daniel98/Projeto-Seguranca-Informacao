@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # ===========================================
-# Avalia o modelo treinado no dataset2 (CASIA-FASD)
+# Avalia o modelo treinado em CASIA no dataset NUAA
+# Cross-Dataset Evaluation: CASIA → NUAA
 # ===========================================
 
 set -e
@@ -10,7 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 echo "============================================="
-echo "  Avaliando modelo no dataset2 (CASIA-FASD)"
+echo "  Cross-Dataset: CASIA → NUAA"
 echo "============================================="
 
 # Verificar se o modelo existe
@@ -21,10 +22,10 @@ if [ ! -f "$SCRIPT_DIR/models/metodo2_vgg16_best.keras" ] && \
     exit 1
 fi
 
-# Verificar se o dataset2 existe
-if [ ! -d "$PROJECT_ROOT/dataset2/test" ]; then
-    echo "❌ ERRO: dataset2 não encontrado!"
-    echo "   Rode primeiro: python database2.py"
+# Verificar se o dataset (NUAA) existe
+if [ ! -d "$PROJECT_ROOT/dataset/test" ]; then
+    echo "❌ ERRO: dataset (NUAA) não encontrado!"
+    echo "   Rode primeiro: python database.py"
     exit 1
 fi
 
@@ -32,9 +33,9 @@ cd "$PROJECT_ROOT"
 python -m Metodo_2.eval_dataset2
 
 echo ""
-echo "✅ Avaliação concluída!"
+echo "✅ Avaliação cross-dataset concluída!"
 echo ""
 echo "Arquivos gerados em Metodo_2/results/:"
-echo "  - results_cross_dataset2.txt"
-echo "  - confusion_matrix_dataset2.png"
-echo "  - roc_curve_dataset2.png"
+echo "  - results_cross_nuaa.txt"
+echo "  - confusion_matrix_nuaa.png"
+echo "  - roc_curve_nuaa.png"

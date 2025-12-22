@@ -1,28 +1,29 @@
 ==================================================
 RESULTADOS DO MÉTODO 2 (VGG16 Transfer Learning)
+Treinado e Testado em: CASIA-FASD (dataset2)
 ==================================================
 
-Acurácia:  0.9994 (99.94%)
-Precisão:  0.9990
-Recall:    1.0000
-F1-Score:  0.9995
+Acurácia:  0.9222 (92.22%)
+Precisão:  0.9097
+Recall:    0.9374
+F1-Score:  0.9233
 
-FAR (False Acceptance Rate): 0.0013 (0.13%)
-FRR (False Rejection Rate):  0.0000 (0.00%)
-HTER: 0.0007 (0.07%)
-EER:  0.0000 (0.00%)
-AUC:  1.0000
+FAR (False Acceptance Rate): 0.0931 (9.31%)
+FRR (False Rejection Rate):  0.0626 (6.26%)
+HTER: 0.0778 (7.78%)
+EER:  0.0846 (8.46%)
+AUC:  0.9768
 
 Matriz de Confusão (linhas = verdade, colunas = predição):
-[[ 763    1]
- [   0 1025]]
+[[536  55]
+ [ 37 554]]
 
 Relatório de Classificação:
               precision    recall  f1-score   support
 
-    Fake (0)       1.00      1.00      1.00       764
-    Real (1)       1.00      1.00      1.00      1025
+    Fake (0)       0.94      0.91      0.92       591
+    Real (1)       0.91      0.94      0.92       591
 
-    accuracy                           1.00      1789
-   macro avg       1.00      1.00      1.00      1789
-weighted avg       1.00      1.00      1.00      1789
+    accuracy                           0.92      1182
+   macro avg       0.92      0.92      0.92      1182
+weighted avg       0.92      0.92      0.92      1182

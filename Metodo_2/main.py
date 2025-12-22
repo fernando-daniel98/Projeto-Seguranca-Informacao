@@ -2,6 +2,7 @@ import tensorflow as tf
 from keras import layers, models, callbacks
 from keras.applications.vgg16 import VGG16, preprocess_input
 import os
+import numpy as np
 from pathlib import Path
 
 # Diretório base do Método 2
@@ -10,10 +11,11 @@ MODELS_DIR = BASE_DIR / "models"
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Caminhos dos diretórios de dados (relativo à raiz do projeto)
+# TREINO E TESTE: dataset2 (CASIA-FASD)
 PROJECT_ROOT = BASE_DIR.parent
-train_dir = PROJECT_ROOT / "dataset" / "train"
-val_dir = PROJECT_ROOT / "dataset" / "val"
-test_dir = PROJECT_ROOT / "dataset" / "test"
+train_dir = PROJECT_ROOT / "dataset2" / "train"
+val_dir = PROJECT_ROOT / "dataset2" / "val"
+test_dir = PROJECT_ROOT / "dataset2" / "test"
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
@@ -48,6 +50,34 @@ test_ds = tf.keras.utils.image_dataset_from_directory(
 train_ds = train_ds.prefetch(buffer_size=tf.data.AUTOTUNE)
 val_ds = val_ds.prefetch(buffer_size=tf.data.AUTOTUNE)
 test_ds = test_ds.prefetch(buffer_size=tf.data.AUTOTUNE)
+
+# --- CALCULAR CLASS WEIGHTS PARA LIDAR COM DESBALANCEAMENTO ---
+print("\nCalculando class weights...")
+train_labels = []
+for _, labels in train_ds.unbatch().as_numpy_iterator():
+    train_labels.append(np.argmax(labels))
+
+train_labels = np.array(train_labels)
+class_counts = np.bincount(train_labels)
+total_samples = len(train_labels)
+
+# Weight inversamente proporcional à frequência
+class_weight = {i: total_samples / (len(class_counts) * count) 
+                for i, count in enumerate(class_counts)}
+
+print(f"Distribuição de classes no treino:")
+print(f"  Fake (0): {class_counts[0]} imagens (weight: {class_weight[0]:.4f})")
+print(f"  Real (1): {class_counts[1]} imagens (weight: {class_weight[1]:.4f})")
+
+# Re-criar train_ds pois foi consumido
+train_ds = tf.keras.utils.image_dataset_from_directory(
+    str(train_dir),
+    image_size=IMG_SIZE,
+    batch_size=BATCH_SIZE,
+    label_mode="categorical",
+    shuffle=True
+)
+train_ds = train_ds.prefetch(buffer_size=tf.data.AUTOTUNE)
 
 # --- 1. DATA AUGMENTATION (DENTRO DO MODELO) ---
 data_augmentation = tf.keras.Sequential([
@@ -103,16 +133,17 @@ checkpoint_cb = callbacks.ModelCheckpoint(
 )
 
 early_stopping_cb = callbacks.EarlyStopping(
-    patience=5,
+    patience=7,  # Aumentado para permitir mais recuperação
     monitor="val_loss",
     restore_best_weights=True
 )
 
-# Treino
+# Treino com class_weight
 history = model.fit(
     train_ds,
     validation_data=val_ds,
     epochs=20,
+    class_weight=class_weight,  # Aplicar pesos de classe
     callbacks=[checkpoint_cb, early_stopping_cb]
 )
 
@@ -122,8 +153,8 @@ model.save(str(final_model_path))
 print(f"\nModelo final salvo em: {final_model_path}")
 print(f"Melhor modelo (checkpoint) salvo em: {model_path}")
 
-# --- AVALIAÇÃO RÁPIDA ---
-print("\n--- Avaliando no Test Set (Subject Hold-out) ---")
+# --- AVALIAÇÃO RÁPIDA (CASIA Test Set) ---
+print("\n--- Avaliando no Test Set (CASIA-FASD) ---")
 best_model = models.load_model(str(model_path))
 test_loss, test_acc = best_model.evaluate(test_ds)
-print(f"Acurácia Final no Teste: {test_acc:.4f}")
+print(f"Acurácia Final no Teste (CASIA): {test_acc:.4f}")

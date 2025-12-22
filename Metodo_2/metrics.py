@@ -127,8 +127,8 @@ def main():
     RESULTS_DIR = BASE_DIR / "results"
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Caminho do dataset de teste
-    test_dir = PROJECT_ROOT / "dataset" / "test"
+    # Caminho do dataset de teste (CASIA-FASD)
+    test_dir = PROJECT_ROOT / "dataset2" / "test"
 
     IMG_SIZE = (224, 224)
     BATCH_SIZE = 32
@@ -174,6 +174,7 @@ def main():
     # --- CÁLCULO DAS MÉTRICAS ---
     print("\n" + "="*50)
     print("RESULTADOS DO MÉTODO 2 (VGG16 Transfer Learning)")
+    print("Treinado e Testado em: CASIA-FASD (dataset2)")
     print("="*50)
 
     acc = accuracy_score(y_true, y_pred)
@@ -209,6 +210,7 @@ def main():
     with open(txt_path, "w", encoding="utf-8") as f:
         f.write("="*50 + "\n")
         f.write("RESULTADOS DO MÉTODO 2 (VGG16 Transfer Learning)\n")
+        f.write("Treinado e Testado em: CASIA-FASD (dataset2)\n")
         f.write("="*50 + "\n\n")
         f.write(f"Acurácia:  {acc:.4f} ({acc*100:.2f}%)\n")
         f.write(f"Precisão:  {prec:.4f}\n")

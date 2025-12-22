@@ -23,14 +23,14 @@ echo ""
 mkdir -p "$SCRIPT_DIR/models"
 mkdir -p "$SCRIPT_DIR/results"
 
-# Verificar se o dataset existe
-if [ ! -d "$PROJECT_ROOT/dataset/train" ]; then
-    echo "❌ ERRO: Dataset não encontrado em $PROJECT_ROOT/dataset/"
-    echo "   Verifique se o dataset está no local correto."
+# Verificar se o dataset2 (CASIA-FASD) existe
+if [ ! -d "$PROJECT_ROOT/dataset2/train" ]; then
+    echo "❌ ERRO: Dataset2 (CASIA-FASD) não encontrado em $PROJECT_ROOT/dataset2/"
+    echo "   Rode primeiro: python database2.py"
     exit 1
 fi
 
-echo "✅ Dataset encontrado"
+echo "✅ Dataset2 (CASIA-FASD) encontrado"
 echo ""
 
 # Passo 1: Treinar o modelo
