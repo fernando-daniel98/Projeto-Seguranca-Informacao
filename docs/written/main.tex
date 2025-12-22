@@ -226,6 +226,43 @@ O objetivo principal é avaliar comparativamente o desempenho dessas três abord
 % ---
 \section{Experimentos e Resultados}
 
+\subsection{Desempenho do Método 1}
+
+A Tabela~\ref{tab:metodo1-metricas} resume as métricas obtidas pelo Método 1 no conjunto de teste NUAA. A matriz de confusão e a curva ROC correspondentes são exibidas na Figura~\ref{fig:metodo1-conf-roc}. As métricas empregadas incluem acurácia, \emph{False Acceptance Rate} (FAR), \emph{False Rejection Rate} (FRR), \emph{Half Total Error Rate} (HTER) e \emph{Equal Error Rate} (EER), definidas conforme as normas da biometria【162087600081438†L509-L518】.
+
+\begin{table}[H]
+  \centering
+  \caption{Métricas de desempenho do Método 1 (LBP\,+\,SVM) no conjunto de teste NUAA.}
+  \label{tab:metodo1-metricas}
+  \begin{tabular}{lr}
+    \hline
+    \textbf{Métrica} & \textbf{Valor} \\
+    \hline
+    Acurácia & 0,9737 \\
+    Precisão (classe real) & 0,9813 \\
+    Recall (classe real) & 0,9727 \\
+    FAR (\%) & 2,49 \\
+    FRR (\%) & 2,73 \\
+    HTER (\%) & 2,61 \\
+    EER (\% aprox.) & 2,63 \\
+    AUC (ROC) & 0,9933 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+Observa‑se que o método LBP+SVM alcançou acurácia de 97,37 \% e AUC de 0,9933. As taxas de erro se mantêm próximas de 2,6 \%, em especial o HTER e o EER. Comparativamente, a literatura reporta acurácias em torno de 92,5 \% e HTER de 7,9 \% para métodos baseados em LBP na NUAA【162087600081438†L520-L541】. A redução das taxas de erro verificada nesta implementação pode ser atribuída à divisão de dados por sujeito, ao pré‑processamento cuidadoso (normalização e recorte da face) e à otimização de hiperparâmetros com validação cruzada por grupo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\linewidth]{confusion_matrix_metodo1.png}
+    \includegraphics[width=0.48\linewidth]{roc_curve_metodo1.png}
+    \caption{À esquerda, matriz de confusão; à direita, curva ROC obtida para o Método 1 (LBP\,+\,SVM) no conjunto de teste NUAA. As imagens foram geradas pelos scripts de avaliação.}
+    \label{fig:metodo1-conf-roc}
+\end{figure}
+
+A matriz de confusão revela que 745 imagens falsas foram corretamente identificadas (verdadeiros negativos), enquanto 19 falsos positivos ocorreram. Do lado das imagens reais, 997 foram classificadas corretamente (verdadeiros positivos) e 28 foram classificadas como falsas (falsos negativos). A curva ROC mostra um desempenho discriminativo elevado, com AUC de 0,9933, corroborando a robustez do modelo frente às variações presentes no conjunto de teste.
+
+
 % ---
 % Conclusão
 % ---

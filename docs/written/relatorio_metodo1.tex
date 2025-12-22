@@ -1,0 +1,122 @@
+% Este arquivo baseia-se no modelo de artigo ABNT fornecido e inclui a seção
+% dedicada ao Método 1 (LBP + SVM) do projeto de detecção de face anti‑spoofing.
+
+\documentclass[
+    article,
+    11pt,
+    oneside,
+    a4paper,
+    english,
+    brazil,
+    sumario=tradicional
+]{abntex2}
+
+% Pacotes essenciais
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{microtype}
+\usepackage{float}
+
+% Informações de capa (podem ser ajustadas conforme necessário)
+\titulo{Análise Comparativa de Métodos para Detecção de Face Anti‑Spoofing}
+\autor{Fernando Daniel Marelino \and Ícaro Travain Darwich da Rocha \and Marcos Aquino \and Mateus Vespasiano de Castro}
+\local{São Paulo, Brasil}
+\data{Dezembro de 2025}
+
+% Configurações do PDF
+\makeatletter
+\hypersetup{
+    pdftitle={Análise Comparativa de Métodos para Detecção de Face Anti‑Spoofing},
+    pdfauthor={Fernando Daniel Marelino; Ícaro Travain Darwich da Rocha; Marcos Aquino; Mateus Vespasiano de Castro},
+    pdfsubject={Detecção de ataques de apresentação facial com LBP, Deep Learning e Histogramas de Cor},
+    pdfcreator={LaTeX with abnTeX2},
+    pdfkeywords={face anti-spoofing}{LBP}{SVM}{NUAA}{reconhecimento facial},
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+\makeatother
+
+\setlength{\parindent}{1.3cm}
+\setlength{\parskip}{0.2cm}
+\SingleSpacing
+
+\begin{document}
+
+\frenchspacing
+
+\maketitle
+
+\begin{resumoumacoluna}
+    Este artigo apresenta uma análise comparativa de três abordagens distintas para detecção de ataques de apresentação facial: (1) descritores Local Binary Patterns (LBP) seguidos de um classificador SVM, (2) transferência de aprendizado com a arquitetura VGG16 e (3) histogramas de cor nos espaços HSV e YCbCr combinados a um SVM. Os experimentos foram conduzidos no conjunto de dados NUAA, amplamente utilizado como benchmark para o problema de \emph{face anti‑spoofing}. Este trabalho concentra‑se na implementação do Método 1, discutindo a metodologia empregada, a avaliação experimental e os resultados obtidos.
+
+    \vspace{\onelineskip}
+
+    \noindent
+    \textbf{Palavras‑chave}: LBP; detecção de ataques de apresentação; face anti‑spoofing; SVM; NUAA.
+\end{resumoumacoluna}
+
+\section*{Introdução}
+\addcontentsline{toc}{section}{Introdução}
+
+No contexto de sistemas de autenticação biométrica baseados em reconhecimento facial, ataques de apresentação (PAD) representam um desafio significativo. Tais ataques consistem em apresentar fotografias impressas, reproduções em vídeo ou máscaras tridimensionais com o intuito de enganar o sistema de reconhecimento facial. A literatura propõe diversas abordagens para detecção desses ataques, incluindo descritores de textura como Local Binary Patterns (LBP), análise de cor e redes neurais profundas. Este artigo analisa, de forma comparativa, três métodos que se valem desses diferentes tipos de características. A seção a seguir descreve detalhadamente a metodologia do Método 1 (LBP + SVM) e apresenta os resultados obtidos.
+
+\section{Metodologia}
+
+\subsection{Método 1: LBP\,+\,SVM}
+
+O Método 1 consiste em uma abordagem clássica baseada em textura para detecção de ataques de apresentação facial. Cada imagem facial é normalizada para o tamanho de $224\times224$ pixels e convertida para tons de cinza, conforme sugerido na literatura【162087600081438†L458-L471】. Em seguida, aplica‑se o descritor Local Binary Patterns (LBP) na variante \emph{uniforme}, utilizando $P=16$ vizinhos e raio $R=2$. O LBP uniformiza padrões de textura locais e gera um histograma de frequências que serve como vetor de características para a imagem【162087600081438†L458-L471】.
+
+Para evitar vazamento de dados, o conjunto de dados NUAA foi particionado de modo que não houvesse compartilhamento de sujeitos entre treino, validação e teste. Foi adotado um \emph{hold‑out} por sujeito, com aproximadamente 70 \% dos sujeitos para treino, 20 \% para validação e 10 \% para teste. Adicionalmente, uma divisão “oficial‑like” reproduz os tamanhos de treino e teste reportados na literatura, garantindo 3 491 amostras reais e 5 761 falsas no treino e 1 614 reais e 1 748 falsas no teste【162087600081438†L520-L541】. O processo de extração de características gera matrizes $X_{\mathrm{train}}$, $X_{\mathrm{val}}$ e $X_{\mathrm{test}}$, cada uma composta pelos histogramas LBP normalizados, acompanhados dos rótulos $y\in\{0,1\}$ e metadados de sujeito/sessão.
+
+Os vetores de características são padronizados via \texttt{StandardScaler} e utilizados como entrada para um classificador \textit{Support Vector Machine} com kernel radial (RBF). Para lidar com o desbalanceamento entre classes, as ponderações de classe foram ajustadas de forma inversamente proporcional à frequência das classes. Os hiperparâmetros $(C,\gamma)$ do SVM foram selecionados com validação cruzada em grupos (\texttt{GroupKFold}) utilizando os sujeitos como grupos. A métrica de seleção adotada foi a área sob a curva ROC (AUC), dado que essa métrica reflete melhor o equilíbrio entre Falsa Aceitação (FAR) e Falsa Rejeição (FRR) do sistema. Por fim, o modelo escolhido foi treinado com todos os dados de treino+validação e avaliado no conjunto de teste.
+
+\section{Experimentos e Resultados}
+
+\subsection{Desempenho do Método 1}
+
+A Tabela~\ref{tab:metodo1-metricas} resume as métricas obtidas pelo Método 1 no conjunto de teste NUAA. A matriz de confusão e a curva ROC correspondentes são exibidas na Figura~\ref{fig:metodo1-conf-roc}. As métricas empregadas incluem acurácia, \emph{False Acceptance Rate} (FAR), \emph{False Rejection Rate} (FRR), \emph{Half Total Error Rate} (HTER) e \emph{Equal Error Rate} (EER), definidas conforme as normas da biometria【162087600081438†L509-L518】.
+
+\begin{table}[H]
+  \centering
+  \caption{Métricas de desempenho do Método 1 (LBP\,+\,SVM) no conjunto de teste NUAA.}
+  \label{tab:metodo1-metricas}
+  \begin{tabular}{lr}
+    \hline
+    \textbf{Métrica} & \textbf{Valor} \\
+    \hline
+    Acurácia & 0,9737 \\
+    Precisão (classe real) & 0,9813 \\
+    Recall (classe real) & 0,9727 \\
+    FAR (\%) & 2,49 \\
+    FRR (\%) & 2,73 \\
+    HTER (\%) & 2,61 \\
+    EER (\% aprox.) & 2,63 \\
+    AUC (ROC) & 0,9933 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+Observa‑se que o método LBP+SVM alcançou acurácia de 97,37 \% e AUC de 0,9933. As taxas de erro se mantêm próximas de 2,6 \%, em especial o HTER e o EER. Comparativamente, a literatura reporta acurácias em torno de 92,5 \% e HTER de 7,9 \% para métodos baseados em LBP na NUAA【162087600081438†L520-L541】. A redução das taxas de erro verificada nesta implementação pode ser atribuída à divisão de dados por sujeito, ao pré‑processamento cuidadoso (normalização e recorte da face) e à otimização de hiperparâmetros com validação cruzada por grupo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\linewidth]{confusion_matrix_metodo1.png}
+    \includegraphics[width=0.48\linewidth]{roc_curve_metodo1.png}
+    \caption{À esquerda, matriz de confusão; à direita, curva ROC obtida para o Método 1 (LBP\,+\,SVM) no conjunto de teste NUAA. As imagens foram geradas pelos scripts de avaliação.}
+    \label{fig:metodo1-conf-roc}
+\end{figure}
+
+A matriz de confusão revela que 745 imagens falsas foram corretamente identificadas (verdadeiros negativos), enquanto 19 falsos positivos ocorreram. Do lado das imagens reais, 997 foram classificadas corretamente (verdadeiros positivos) e 28 foram classificadas como falsas (falsos negativos). A curva ROC mostra um desempenho discriminativo elevado, com AUC de 0,9933, corroborando a robustez do modelo frente às variações presentes no conjunto de teste.
+
+\section*{Conclusão}
+\addcontentsline{toc}{section}{Conclusão}
+
+O Método 1, baseado em descritores de textura LBP e classificador SVM, demonstrou desempenho competitivo no reconhecimento de ataques de apresentação na base NUAA. Apesar de representar uma abordagem tradicional, o uso de uma divisão estrita por sujeito, a normalização das imagens e a otimização cuidadosa dos hiperparâmetros permitiram alcançar HTER na casa de 2,6 \%, muito abaixo dos valores históricos para esse método【162087600081438†L592-L600】. Ainda assim, a acurácia de 97,3 \% é inferior à observada para métodos baseados em histogramas de cor ou redes profundas, indicando que LBP captura bem padrões de textura, mas é limitado frente a descritores que exploram informações cromáticas ou profundas. Na comparação geral, os resultados confirmam a hierarquia de desempenho apontada na literatura: métodos de cor e \emph{deep features} superam significativamente descritores de textura simples.
+
+\end{document}

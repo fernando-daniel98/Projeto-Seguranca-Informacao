@@ -3,6 +3,8 @@ dataset2
 dataset.csv
 __pycache__
 .venv
+./melhor_modelo_vgg16.keras
+./venv
 
 # Ignorando o esboço do texto
 main.txt
