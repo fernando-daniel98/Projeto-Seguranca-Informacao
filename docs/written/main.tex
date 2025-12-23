@@ -273,8 +273,8 @@ O modelo foi compilado utilizando o otimizador Adam com uma taxa de aprendizado 
 
 O treinamento foi configurado para um máximo de 20 épocas, com tamanho de lote (\textit{batch size}) de 32. Foram empregados os seguintes callbacks para monitoramento e controle:
 \begin{itemize}
-    \item \textbf{ModelCheckpoint}: Salvamento automático dos pesos do modelo que apresentaram o menor erro de validação (\textit{val\_loss}).
-    \item \textbf{EarlyStopping}: Interrupção prematura do treinamento caso não houvesse melhoria na perda de validação após 5 épocas consecutivas (\textit{patience}=5), restaurando-se os melhores pesos obtidos.
+    \item \textbf{ModelCheckpoint}: Salvamento automático dos pesos do modelo que apresentaram o menor erro de validação.
+    \item \textbf{EarlyStopping}: Interrupção prematura do treinamento caso não houvesse melhoria na perda de validação após 5 épocas consecutivas, restaurando-se os melhores pesos obtidos.
 \end{itemize}
 
 
@@ -393,11 +393,19 @@ O modelo VGG16, treinado e testado no dataset NUAA, demonstrou convergência ide
     \end{tabular}
 \end{table}
 
-A matriz de confusão revelou que, de um total de 1.789 amostras de teste, o modelo cometeu apenas um erro, classificando incorretamente uma imagem \textit{fake} como real. Isso resultou em uma Taxa de Falsa Rejeição (FRR) de 0,00\% e uma Taxa de Falsa Aceitação (FAR) marginal de 0,13\%. A curva ROC apresentou um comportamento perfeito (AUC = 1.0), indicando uma separação linear completa entre as classes no espaço de características aprendido pelo modelo para este domínio específico.
+A matriz de confusão \ref{fig:metodo2-nuaa-conf-roc} revelou que, de um total de 1.789 amostras de teste, o modelo cometeu apenas um erro, classificando incorretamente uma imagem \textit{fake} como real. Isso resultou em uma Taxa de Falsa Rejeição (FRR) de 0,00\% e uma Taxa de Falsa Aceitação (FAR) marginal de 0,13\%, demonstrando uma separação quase perfeita das duas classes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{figures/confusion_matrix_metodo2.png}
+    \caption{Matriz de confusão método - NUAA}
+    \label{fig:metodo2-nuaa-conf-roc}
+\end{figure}
+
 
 \subsubsection{Avaliação Cross\-Dataset (NUAA $\rightarrow$ CASIA-FASD)}
 
-Para avaliar a robustez do sistema em um cenário do mundo real, o modelo treinado exclusivamente no NUAA foi submetido ao dataset CASIA-FASD sem qualquer \textit{fine-tuning}. Observou-se uma degradação significativa nas métricas de desempenho, evidenciando o fenômeno de \textit{domain shift} (mudança de domínio).
+Para avaliar a robustez do sistema em um cenário do mundo real, o modelo treinado exclusivamente no NUAA foi submetido ao dataset CASIA-FASD. Observou-se uma degradação significativa nas métricas de desempenho, evidenciando o fenômeno de mudança de domínio, esses resultados podem ser observados na figura \ref{fig:metodo2_2-nuaa-conf-roc}.
 
 A acurácia global caiu para 78,57\%. Entretanto, a análise isolada da acurácia mascara o comportamento conservador do modelo. Ao analisar as taxas de erro, observou-se uma discrepância acentuada entre FAR e FRR:
 
@@ -406,13 +414,39 @@ A acurácia global caiu para 78,57\%. Entretanto, a análise isolada da acuráci
     \item \textbf{FRR (81,39\%):} A taxa de rejeição de usuários legítimos foi excessivamente alta. De 591 acessos reais, o modelo rejeitou incorretamente 481 usuários.
 \end{itemize}
 
-A curva ROC no cenário \textit{cross-dataset} apresentou uma AUC de 0,8005 e um \textit{Equal Error Rate} (EER) de 29,50\%. O ponto de operação do EER destaca que o limiar de decisão padrão (0,5) não é ideal para novos domínios, favorecendo excessivamente a classe \textit{fake} em detrimento da classe \textit{real}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{figures/confusion_matrix_metodo2_2.png}
+    \caption{Matriz de confusão método 2 - CASIA-FASD}
+    \label{fig:metodo2_2-nuaa-conf-roc}
+\end{figure}
 
-Os resultados evidenciam que o modelo VGG16 possui capacidade suficiente para extrair características discriminativas de \textit{liveness}, atingindo o excelente resultado no dataset em que foi treinado (NUAA). Contudo, a queda de desempenho no teste \textit{cross-dataset} revela que as características aprendidas são fortemente dependentes do domínio de origem (iluminação, sensor da câmera, fundo e resolução do NUAA).
+
+A curva ROC \ref{fig:metodo2_2-casd_roc} apresentou uma AUC de 0,8005 e um \textit{Equal Error Rate} (EER) de 29,50\%. O ponto de operação do EER destaca que o limiar de decisão padrão (0,5) não é ideal para novos domínios, favorecendo excessivamente a classe \textit{fake} em detrimento da classe \textit{real}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{figures/roc_curve_metodo2_2.png}
+    \caption{Curva ROC - CASIA-FASD}
+    \label{fig:metodo2_2-casd_roc}
+\end{figure}
+
+Os resultados mostram que o modelo VGG16 possui capacidade suficiente para extrair características discriminativas, atingindo o excelente resultado no dataset em que foi treinado (NUAA). Porém, a queda de desempenho no teste \textit{cross-dataset} revela que as características aprendidas são fortemente dependentes do domínio de origem (iluminação, sensor da câmera, fundo e resolução do NUAA).
 
 O alto índice de FRR (81,39\%) no CASIA-FASD indica que o modelo aprendeu uma representação restrita do que constitui uma ``face real'' baseada apenas nas amostras do NUAA. Quando exposto às faces reais do CASIA-FASD, que possuem distribuições estatísticas diferentes, o classificador tendeu a rejeitá-las por não corresponderem ao padrão ``real'' memorizado.
 
-Em termos práticos de segurança biométrica, o sistema atual comporta-se como \textbf{altamente seguro, mas pouco utilizável} em ambientes não controlados, pois embora bloqueie ataques com eficácia (FAR baixo), impede o acesso da maioria dos usuários legítimos (FRR alto). 
+Na prática, o sistema comporta-se como altamente seguro, mas pouco utilizável, pois embora bloqueie ataques com eficácia, impede o acesso da maioria dos usuários legítimos. 
+
+Como os resultados apresentados não eram satisfatórios, tentou-se um segunda abordagem, treinar no dataset CASIA-FASD e testar no NUAA. O resultado pode ser observado na figura \ref{fig:matriz_metodo2_2-casd_nuaa}. Das 1789 imagens de teste, apenas 1021 foram classificadas corretamente, representando uma acurácia de apenas 57\%.
+
+Com um FAR de 1\% e FRR de 98,8\%, essa alteração do dataset de treino mostra que 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{figures/confusion_matrix_casia_nuaa.png}
+    \caption{Matriz de confusão método 2 - CASIA-FASD -> NUAA}
+    \label{fig:matriz_metodo2_2-casd_nuaa}
+\end{figure}
 
 \subsection{Método 3: Histogramas de Cor e SVM}
 
