@@ -4,162 +4,267 @@ Projeto final da disciplina de Segurança da Informação
 ## Descrição
 Este projeto tem como objetivo fazer avaliações e análises comparativas entre três diferentes abordagens de segurança da informação, abordagens essas que serão feitas para um mesmo conjunto de dados. O objetivo é entender as vantagens e desvantagens de cada abordagem, bem como identificar qual delas é mais eficaz em diferentes cenários.
 
-## Parâmetros utilizados para comparação
-- Acurácia
-- Precisão 
-- Recall
+## 📁 Estrutura do Repositório
 
-- AUC (ROC)
+```
+Projeto-Seguranca-Informacao/
+├── database.py                 # Gera dataset NUAA (multi-seed, separação por sujeito)
+├── database2.py                # Gera dataset CASIA-FASD
+├── database_old.py             # Versão legada (baseline)
+├── requirements.txt            # Dependências do projeto
+├── dataset/                    # Dataset NUAA organizado (gerado por database.py)
+├── dataset2/                   # Dataset CASIA-FASD organizado (gerado por database2.py)
+│
+├── Metodo_1/                   # LBP + SVM
+│   ├── extract_lbp.py          # Extração de features LBP
+│   ├── svm.py                  # Treinamento do classificador SVM
+│   ├── metrics.py              # Avaliação e métricas
+│   ├── visualize_lbp.py        # Visualização das features LBP
+│   ├── exploratory_analises.py # Análise exploratória do dataset
+│   ├── test_new_images.py      # Testar com novas imagens
+│   ├── data/                   # Features extraídas (.npy)
+│   ├── models/                 # Modelos treinados (.pkl)
+│   ├── results/                # Resultados e gráficos
+│   └── CASIA/                  # Treino cruzado CASIA→NUAA
+│       ├── extract_lbp_casia.py
+│       ├── train_svm_casia.py
+│       └── test_nuaa.py
+│
+├── Metodo_2/                   # VGG16 Transfer Learning
+│   ├── main.py                 # Treinamento do modelo VGG16
+│   ├── metrics.py              # Avaliação e métricas
+│   ├── run.sh                  # Script para executar pipeline completo
+│   ├── models/                 # Modelos treinados (.keras)
+│   └── results/                # Resultados e gráficos
+│
+└── Metodo_3/                   # Histogramas de Cor + SVM
+    ├── 1_extract_cor.py        # Extração de histogramas HSV/YCbCr
+    ├── 2_svm.py                # Treinamento do classificador SVM
+    ├── 3_metricas.py           # Avaliação e métricas
+    ├── data/                   # Features extraídas
+    ├── models/                 # Modelos treinados
+    └── results/                # Resultados e gráficos
+```
 
-Matriz de confusão
+---
 
+## 🛠️ Como Replicar o Projeto
 
-## Colaboradores
+### Pré-requisitos
+
+1. **Python 3.8+** instalado
+2. **Conta no Kaggle** com API configurada (para download automático dos datasets)
+3. **GPU (opcional)** para o Método 2 (VGG16)
+
+### Passo 1: Clonar o Repositório
+
+```bash
+git clone https://github.com/seu-usuario/Projeto-Seguranca-Informacao.git
+cd Projeto-Seguranca-Informacao
+```
+
+### Passo 2: Criar Ambiente Virtual e Instalar Dependências
+
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# ou: venv\Scripts\activate  # Windows
+
+pip install -r requirements.txt
+```
+
+### Passo 3: Configurar Credenciais do Kaggle
+
+```bash
+# Baixe kaggle.json em: https://www.kaggle.com/settings
+mkdir -p ~/.kaggle
+cp kaggle.json ~/.kaggle/
+chmod 600 ~/.kaggle/kaggle.json
+```
+
+### Passo 4: Gerar os Datasets
+
+```bash
+# Dataset NUAA (usado por Metodo_1 e Metodo_3)
+python database.py
+
+# Dataset CASIA-FASD (usado por Metodo_2)
+python database2.py
+```
+
+---
+
+## 📘 Método 1: LBP + SVM
+
+Extrai features de textura usando Local Binary Patterns e classifica com SVM.
+
+### Execução Completa
+
+```bash
+cd Metodo_1
+
+# 1. Extrair features LBP (com separação por sujeito)
+python extract_lbp.py --split-mode group-subject
+
+# 2. Treinar SVM
+python svm.py
+
+# 3. Gerar métricas e visualizações
+python metrics.py
+```
+
+### Opções Avançadas
+
+```bash
+# Validação cruzada por sujeito (GroupKFold)
+python svm.py --subject-cv --k 5
+
+# Visualizar features LBP
+python visualize_lbp.py
+
+# Análise exploratória do dataset
+python exploratory_analises.py
+
+# Testar com novas imagens
+python test_new_images.py --dir /caminho/para/imagens
+```
+
+### Treino Cruzado CASIA → NUAA
+
+```bash
+cd Metodo_1/CASIA
+
+# 1. Extrair features do CASIA
+python extract_lbp_casia.py
+
+# 2. Treinar SVM no CASIA
+python train_svm_casia.py
+
+# 3. Testar no NUAA
+python test_nuaa.py
+```
+
+### Arquivos Gerados
+
+- `data/X_train_lbp.npy`, `y_train_lbp.npy`, etc.
+- `models/metodo1_lbp_svm.pkl`
+- `results/results_metodo1.txt`
+- `results/confusion_matrix_metodo1.png`
+- `results/roc_curve_metodo1.png`
+
+---
+
+## 📗 Método 2: VGG16 Transfer Learning
+
+Usa transfer learning com a rede VGG16 pré-treinada no ImageNet.
+
+### Execução Completa (Script Automatizado)
+
+```bash
+cd Metodo_2
+chmod +x run.sh
+./run.sh
+```
+
+### Execução Manual
+
+```bash
+cd Projeto-Seguranca-Informacao
+
+# 1. Treinar o modelo VGG16
+python -m Metodo_2.main
+
+# 2. Gerar métricas e visualizações
+python -m Metodo_2.metrics
+```
+
+### Arquivos Gerados
+
+- `Metodo_2/models/metodo2_vgg16_best.keras`
+- `Metodo_2/results/results_metodo2.txt`
+- `Metodo_2/results/confusion_matrix_metodo2.png`
+- `Metodo_2/results/roc_curve_metodo2.png`
+- `Metodo_2/results/score_distribution_metodo2.png`
+
+---
+
+## 📙 Método 3: Histogramas de Cor + SVM
+
+Extrai histogramas nos espaços de cor HSV e YCbCr e classifica com SVM.
+
+### Execução Completa
+
+```bash
+cd Metodo_3
+
+# 1. Extrair características de cor
+python 1_extract_cor.py
+
+# 2. Treinar SVM
+python 2_svm.py
+
+# 3. Gerar métricas e visualizações
+python 3_metricas.py
+```
+
+### Arquivos Gerados
+
+- `data/X_train_cor.npy`, `y_train_cor.npy`, etc.
+- `models/metodo3_cor_svm.pkl`
+- `results/results_metodo3.txt`
+- `results/confusion_matrix_metodo3.png`
+- `results/roc_curve_metodo3.png`
+
+---
+
+## 📊 Parâmetros de Comparação
+
+| Métrica | Descrição |
+|---------|-----------|
+| **Acurácia** | Porcentagem total de classificações corretas |
+| **Precisão** | TP / (TP + FP) |
+| **Recall** | TP / (TP + FN) |
+| **F1-Score** | Média harmônica entre Precisão e Recall |
+| **FAR** | False Acceptance Rate (fake aceito como real) |
+| **FRR** | False Rejection Rate (real rejeitado como fake) |
+| **HTER** | (FAR + FRR) / 2 |
+| **EER** | Equal Error Rate (ponto onde FAR = FRR) |
+| **AUC-ROC** | Área sob a curva ROC |
+
+---
+
+## 🔬 Metodologia de Avaliação
+
+1. **Separação por Sujeitos:** Imagens do mesmo indivíduo não aparecem em train e test
+2. **Balanceamento:** Undersampling da classe majoritária no treino
+3. **Multi-Seed:** Execução com 5 seeds para robustez estatística
+4. **Validação Cruzada:** GroupKFold por sujeito (opcional)
+
+---
+
+## 🗂️ Datasets Utilizados
+
+| Dataset | Origem | Script |
+|---------|--------|--------|
+| **NUAA** | [Kaggle: aleksandrpikul222/nuaaaa](https://www.kaggle.com/datasets/aleksandrpikul222/nuaaaa) | `database.py` |
+| **CASIA-FASD** | [Kaggle: minhnh2107/casiafasd](https://www.kaggle.com/datasets/minhnh2107/casiafasd) | `database2.py` |
+
+---
+
+## 🐛 Resolução de Problemas
+
+| Problema | Solução |
+|----------|---------|
+| `FileNotFoundError` nos `.npy` | Execute os scripts na ordem correta |
+| Erro no download do Kaggle | Configure `~/.kaggle/kaggle.json` |
+| Memória insuficiente (Método 2) | Reduza `BATCH_SIZE` em `main.py` |
+| Modelo não encontrado | Verifique se o treinamento foi concluído |
+
+---
+
+## 👥 Colaboradores
+
 - [Fernando Daniel Marelino](https://github.com/fernando-daniel98/)
 - [Ícaro Travain Darwich da Rocha](https://github.com/Itravain)
 - [Marcos Aquino](https://github.com/Marcos-Aquin0)
 - [Mateus Vespasiano de Castro](https://github.com/mateusvdcastro)
-
-## 📌 Descrição do Projeto
-Este projeto realiza uma análise comparativa entre três abordagens de segurança aplicadas à detecção de ataques de apresentação (fotos impressas) em sistemas biométricos. O objetivo principal é avaliar a robustez forense de cada método, garantindo que o sistema aprenda características reais de vivacidade em vez de apenas memorizar rostos.
-
-## 🔬 Metodologia de Avaliação Rigorosa
-Diferente de abordagens simplistas, esta versão implementa três pilares críticos para segurança biométrica:
-
-1.  **Separação por Indivíduos (Subject-Independent):** A divisão entre treino e teste é baseada em IDs de sujeitos exclusivos. Isso garante que o modelo seja testado em rostos que ele **nunca viu** durante o treinamento, eliminando o vazamento de dados (*Subject Leakage*).
-2.  **Treino Balanceado (Undersampling):** A quantidade de imagens reais e falsas no conjunto de treino é igualada para remover qualquer viés estatístico do classificador SVM.
-3.  **Análise Multi-Seed:** O pipeline é executado sob 5 sementes de aleatoriedade ($SEEDS = [42, 10, 23, 56, 89]$) para gerar médias e desvios padrões robustos, garantindo a reprodutibilidade dos resultados.
-
-
-
-## 📊 Parâmetros de Comparação
-As métricas utilizadas avaliam o desempenho sob diferentes perspectivas de segurança:
-* **Acurácia:** Porcentagem total de classificações corretas.
-* **HTER (Half Total Error Rate):** Média entre as taxas de falsa aceitação (FAR) e falsa rejeição (FRR). $$HTER = \frac{FAR + FRR}{2}$$
-* **EER (Equal Error Rate):** O ponto de equilíbrio onde $FAR = FRR$, indicando a precisão intrínseca do classificador.
-* **Matriz de Confusão, Curva ROC e Distribuição de Scores.**
-
----
-
-## 🚀 Instruções de Uso
-
-### 1. Preparação do Dataset
-Existem duas versões do script de organização de dados para fins de comparação:
-
-* **Versão Atualizada (`database.py`):** Aplica a separação por IDs de sujeitos, balanceamento de classes e cria a estrutura para as 5 sementes.
-    ```bash
-    python database.py
-    ```
-    *Saída:* Cria pastas `dataset_seed_X/` e arquivos `dataset_seed_X.csv`.
-
-* **Versão Legada (`database_old.py`):** Mantém a organização original sem separação de IDs ou balanceamento. Serve apenas como baseline para observar o impacto do vazamento de dados nos resultados.
-
-### 2. Execução do Método 3 (Cores + SVM)
-O pipeline deve ser executado para as 5 sementes para gerar o resumo estatístico final:
-
-1.  **Extração de Características:**
-    ```bash
-    python Metodo_3/1_extract_cor.py
-    ```
-    *Extrai histogramas nos espaços de cor HSV e YCbCr para cada semente.*
-
-2.  **Treinamento do Modelo:**
-    ```bash
-    python Metodo_3/2_svm.py
-    ```
-    *Treina 5 modelos SVM (RBF) independentes.*
-
-3.  **Avaliação e Métricas:**
-    ```bash
-    python Metodo_3/3_metricas.py
-    ```
-    *Gera gráficos e arquivos `.txt` individuais por semente e exibe o resumo estatístico final ($\mu \pm \sigma$).*
-
----
-
-## 📁 Estrutura do Repositório
-```text
-.
-├── database.py             # Versão atualizada (Subject ID + Balanceamento + Multi-seed)
-├── database_old.py         # Versão original para comparação (Baseline)
-├── requirements.txt        # Dependências (OpenCV, Scikit-learn, etc.)
-├── Metodo_1/
-├── Metodo_2/
-├── Metodo_3/
-│   ├── 1_extract_cor.py    # Extração de histogramas HSV/YCbCr
-│   ├── 2_svm.py            # Treinamento do classificador SVM
-│   └── 3_metricas.py       # Avaliação, plots e resumo estatístico
-└── dataset/                # Gerado pelo database.py (Ignorado no Git)
-
-
-Dicas e resolução de problemas
-- Se ocorrer FileNotFoundError ao carregar .npy ou .pkl, verifique a ordem: database.py → Metodo_3/1_extract_cor.py → Metodo_3/2_svm.py → Metodo_3/3_metricas.py.
-- Se o download via Kaggle falhar, configure as credenciais do Kaggle ou faça download manual.
-- Use um ambiente virtual (venv/conda) para isolar dependências.
-
-Contribuições
-- Abra um issue ou pull request com melhorias no pipeline ou novas métricas/visualizações.
-
-## Sobre o Dataset
-
-- Nome / origem
-  - Dataset utilizado: NUAA Face Anti-Spoofing (via Kaggle, referência usada: aleksandrpikul222/nuaaaa).
-  - O script `database.py` baixa e organiza automaticamente esse dataset (requer KaggleHub e credenciais configuradas, ou download manual).
-
-- Estrutura e rótulos
-  - O dataset original apresenta duas pastas principais: ClientRaw (imagens REAIS) e ImposterRaw (imagens FALSAS).
-  - Após executar `python database.py` a organização é:
-    - dataset/train/real
-    - dataset/train/fake
-    - dataset/val/real
-    - dataset/val/fake
-    - dataset/test/real
-    - dataset/test/fake
-  - Nos scripts, usamos os rótulos:
-    - 'real' → 1
-    - 'fake' → 0
-
-- Formato e pré-processamento
-  - Arquivos esperados: imagens .jpg/.jpeg/.png/.bmp.
-  - Os scripts de extração redimensionam para 224x224 (veja `Metodo_3/1_extract_cor.py`).
-  - Ajuste de bins, normalização ou transformação podem ser alterados no script de extração.
-
-- Como inspecionar o dataset e contar imagens
-  - Via linha de comando:
-    ```
-    head -n 5 dataset.csv
-    ```
-  - Via Python (rápido check):
-    ```
-    python - <<'PY'
-    import pandas as pd
-    df = pd.read_csv('dataset.csv')
-    print("Distribuição por label:")
-    print(df['label'].value_counts())
-    print("\nDistribuição por split:")
-    print(df['split'].value_counts())
-    PY
-    ```
-  - Ou com pandas interativo:
-    ```
-    import pandas as pd
-    df = pd.read_csv('dataset.csv')
-    display(df.head())
-    ```
-
-- Alterar proporção de splits
-  - Para modificar os percentuais de train/val/test edite a constante SPLIT em `database.py`:
-    ```
-    SPLIT = (0.7, 0.2, 0.1)  # train, val, test
-    ```
-
-- Observações
-  - Caso o download do Kaggle falhe, baixe manualmente e coloque as pastas ClientRaw/ImposterRaw dentro de uma pasta local, ou ajuste o caminho em `database.py`.
-  - Verifique o CSV `dataset.csv` gerado pelo script para confirmar paths absolutos/relativos usados pelos scripts subsequentes.
-
-## Nota sobre particionamento (evitar vazamento)
-
-Para o dataset NUAA, é importante evitar que imagens do mesmo sujeito/sessão apareçam em treino/val/test, pois isso pode inflar muito os resultados.
-
-- O [Metodo_1/extract_lbp.py](Metodo_1/extract_lbp.py) suporta refazer os splits a partir de toda a base com `--split-mode group-subject` (recomendado) ou `--split-mode group-session`.
-- O [Metodo_1/svm.py](Metodo_1/svm.py) suporta validação cruzada por sujeito via `--subject-cv` (GroupKFold).
