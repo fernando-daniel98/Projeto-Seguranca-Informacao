@@ -453,31 +453,27 @@ O alto índice de FRR (81,39\%) no CASIA-FASD indica que o modelo aprendeu uma r
 
 Na prática, o sistema comporta-se como altamente seguro, mas pouco utilizável, pois embora bloqueie ataques com eficácia, impede o acesso da maioria dos usuários legítimos. 
 
-Como os resultados apresentados não eram satisfatórios, tentou-se um segunda abordagem, treinar no dataset CASIA-FASD e testar no NUAA. O resultado pode ser observado na figura \ref{fig:matriz_metodo2_2-casd_nuaa}. Das 1789 imagens de teste, apenas 1021 foram classificadas corretamente, representando uma acurácia de apenas 57\%.
+\subsubsection{Avaliação Cross\-Dataset (CASIA-FASD $\rightarrow$ NUAA)}
 
-Com um FAR de 1\% e FRR de 98,8\%, essa alteração do dataset de treino mostra que 
+Visando investigar se a direção da transferência de conhecimento impacta a capacidade de generalização do modelo, inverteu-se o protocolo experimental: o treinamento foi realizado exclusivamente no \textit{dataset} CASIA-FASD, com a avaliação subsequente no \textit{dataset} NUAA. Os resultados, apresentados na Figura \ref{fig:matriz_metodo2_2-casd_nuaa}, revelam uma degradação de desempenho ainda maior que o cenário anterior.
+
+Das 1789 imagens presentes no conjunto de teste, apenas 1021 foram classificadas corretamente, resultando em uma acurácia de aproximadamente 57,07\%. Este valor, próximo ao nível de chance para um problema binário, sugere que o modelo falhou em transpor os padrões aprendidos de um domínio para o outro. A análise das taxas de erro evidencia um comportamento crítico:
+
+\begin{itemize}
+    \item \textbf{FAR (1,00\%):} Similar ao teste anterior, o sistema apresentou uma taxa de aceitação falsa extremamente baixa, demonstrando rigor na detecção de ataques no novo domínio.
+    \item \textbf{FRR (98,80\%):} Observou-se um colapso na identificação de usuários legítimos. Praticamente toda a classe \textit{real} do NUAA foi erroneamente classificada como \textit{spoofing}, indicando um viés de decisão severamente deslocado para a classe negativa.
+\end{itemize}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\linewidth]{figures/confusion_matrix_casia_nuaa.png}
-    \caption{Matriz de confusão método 2 - CASIA-FASD -> NUAA}
+    \caption{Matriz de confusão método 2 - CASIA-FASD $\rightarrow$ NUAA}
     \label{fig:matriz_metodo2_2-casd_nuaa}
 \end{figure}
 
-\subsubsection{Treinando no CASIA-FASD e testando no NUAA}
-Com o mesmo motivo descrito na subseção \ref{subsubsec:metodo1-casia-nuaa}, decidiu-se treinar o modelo VGG16 utilizando o \textit{dataset} do CASIA-FASD, para então testá-lo no \textit{dataset} do NUAA. Após o treinamento, o modelo apresentou uma acurácia de 42,93\% ao ser testado no NUAA, com precisão de 60,00\%, recall de 1,17\%, FAR de 1,05\%, FRR de 98,83\% e HTER de 49,94\%. A matriz de confusão e a curva ROC podem ser vistas na Figura \ref{fig:metodo2_3-casia-nuaa-conf-roc}.
+A discrepância nos resultados corrobora a hipótese de que o modelo, embora eficaz no mesmo dataset, não extrai características universais da face humana ou da textura de materiais de ataque. Em vez disso, a rede VGG16 parece ter otimizado seus pesos para ruídos estatísticos específicos do CASIA-FASD, como padrões de iluminação de fundo, granulação do sensor e profundidade de cor.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.48\linewidth]{figures/confusion_matrix_metodo2_casiaTonuaa.png}
-    \includegraphics[width=0.48\linewidth]{figures/roc_curve_metodo2_casiaTonuaa.png}
-    \caption{À esquerda, matriz de confusão; à direita, curva ROC do Método 2 (VGG16) treinado no CASIA-FASD e testado no NUAA.}
-    \label{fig:metodo2_3-casia-nuaa-conf-roc}
-\end{figure}
-
-Os resultados para o método 2, ao treinar no CASIA-FASD e testar no NUAA, indicam uma incapacidade significativa do modelo em generalizar entre os dois conjuntos de dados. A acurácia de 42,93\% sugere que o classificador está performando ainda pior do que uma escolha aleatória, o que indica uma forte dependência das características específicas do conjunto de treinamento. O valor absurdamente alto do FRR mostra que o modelo não consegue reconhecer a maioria das faces reais do NUAA, rejeitando incorretamente 98,83\% dos usuários legítimos.
-
-Isso caracteriza um cenário impraticável para aplicações reais, onde a usabilidade é tão crucial quanto a segurança. A incapacidade de generalização pode ser atribuída às diferenças substanciais entre os dois \textit{datasets}, incluindo variações na iluminação, qualidade da imagem, tipos de ataques e diversidade dos sujeitos.
+Ao ser confrontado com o NUAA, que possui características ambientais e de captura distintas, o modelo interpretou a ausência dos artefatos específicos do treino como evidência de um ataque de \textit{spoofing}. Conclui-se que a maior complexidade do CASIA-FASD não foi suficiente para ensinar ao modelo uma representação robusta o bastante para o \textit{dataset} NUAA, reforçando o desafio imposto pela mudança de domínio em sistemas de biometria facial.
 
 \subsection{Método 3: Histogramas de Cor e SVM}
 
@@ -514,7 +510,7 @@ A Figura~\ref{fig:metodo3-casia-nuaa} ilustra a comparação entre a curva ROC a
   \includegraphics[width=0.48\linewidth]{figures/roc_curve_metodo3_CASIA.png}
   \includegraphics[width=0.48\linewidth]{figures/roc_curve_metodo3_CASIA_NUAA.png}
   \caption{À esquerda, curva ROC para o CASIA-FASD; à direita, curva ROC do Método 3 treinado no CASIA-FASD e testado no NUAA.}
-  \label{fig:metodo1-casia-nuaa}
+  \label{fig:metodo3-casia-nuaa}
 \end{figure}
 
 Do ponto de vista da segurança da informação, estes resultados evidenciam que a análise pura de histogramas de cor, embora eficaz em ambientes controlados e específicos, carece de robustez para aplicações universais onde o hardware de captura não é padronizado. O alto índice de Falsa Rejeição (FRR) de $47,41\%$ e Falsa Aceitação (FAR) de $40,71\%$ demonstra que o sistema torna-se vulnerável e pouco prático sob mudança de domínio. Conclui-se, portanto, que para atingir níveis de segurança industriais, o Método 3 deve ser complementado por técnicas de normalização de cores mais agressivas ou integrado a abordagens híbridas que considerem características estruturais e de textura independentes da iluminação.
