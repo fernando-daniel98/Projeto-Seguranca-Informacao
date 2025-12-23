@@ -41,7 +41,8 @@
 \usepackage{indentfirst}		% Indenta o primeiro parágrafo de cada seção.
 \usepackage{nomencl} 			% Lista de simbolos
 \usepackage{color}				% Controle das cores
-\usepackage{graphicx}			% Inclusão de gráficos
+\usepackage{graphicx} % Required for the \includegraphics command
+\usepackage{float}    % Required for the [H] placement specifier
 \usepackage{microtype} 			% para melhorias de justificação
 % ---
 		
@@ -79,7 +80,7 @@
 % Informações de dados para CAPA e FOLHA DE ROSTO
 % ---
 \titulo{Análise Comparativa de Métodos para Detecção de\\ Face Anti-Spoofing: LBP, Deep Learning e Histogramas de Cor}
-\autor{Fernando Daniel Marelino \and Ícaro Travain Darwich da Rocha \and Marcos Aquino \and Mateus Vespasiano de Castro}
+\autor{Fernando Daniel Marcelino \and Ícaro Travain Darwich da Rocha \and Marcos Alves de Aquino \and Mateus Vespasiano de Castro}
 \local{São Paulo, Brasil}
 \data{Dezembro de 2025}
 % ---
@@ -208,27 +209,99 @@ Este trabalho apresenta uma análise comparativa de três métodos distintos par
 O objetivo principal é avaliar comparativamente o desempenho dessas três abordagens em termos de acurácia, \textit{Half Total Error Rate} (HTER) e \textit{Equal Error Rate} (EER), identificando vantagens e limitações de cada método. Os resultados obtidos contribuem para o entendimento de quais características são mais efetivas para a detecção de ataques de impressão fotográfica.
 
 % ----------------------------------------------------------
-% Seção de explicações
+% Seção de Metodologia
 % ----------------------------------------------------------
-\section{Revisão da Literatura}
-
-
 \section{Metodologia}
+\subsection{\textit{Datasets} Utilizados}
+O estudo inicialmente foi pensado em comparar três métodos distintos de detecção de ataques de apresentação facial em apenas um \textit{database}. Para tanto, foi necessário selecionar um conjunto de dados adequado para treinar e avaliar os modelos propostos. No entanto, o modelo estava inferindo muito bem sobre o conjunto pensado inicialmente, já que continha pouca variabilidade de indivíduos. Dessa forma, decidiu-se por utilizar dois conjuntos de dados distintos: NUAA e CASIA-FASD.
 
-% ---
-% Finaliza a parte no bookmark do PDF, para que se inicie o bookmark na raiz
-% ---
-\bookmarksetup{startatroot}% 
-% ---
+\subsubsection{\textit{Dataset} NUAA}
+O principal conjunto de dados utilizado neste estudo é o \textit{NUAA Photograph Imposter Database}, fornecido pela \textit{Nanjing University of Aeronautics and Astronautics} (NUAA). Este dataset é amplamente reconhecido na literatura para o desenvolvimento de sistemas de detecção de vivacidade facial (\textit{face liveness detection}).
 
-% ---
-% Seção de Experimentos
-% ---
+A base de dados contém contém um total de 12.614 imagens estáticas de 15 indivíduos diferentes, sendo 5.105 imagens de acesso real (genuínas) e 7.509 imagens de ataque (falsas/\textit{spoofing}). As imagens foram capturadas em três sessões distintas, apresentando variações controladas de iluminação e ambiente. O foco exclusivo do dataset reside em ataques de \textit{spoofing} de impressão 2D, utilizando fotografias impressas em papel fotográfico de diversos tamanhos, como $6,8 \times 10,2$ cm e papel A4.
+
+\subsubsection{\textit{Dataset} CASIA-FASD}
+O segundo conjunto de dados utilizado é o \textit{CASIA Face Anti-Spoofing Database} (CASIA-FASD), desenvolvido pelo \textit{Chinese Academy of Sciences' Institute of Automation} (CASIA). Este dataset foi escolhido para avaliar a capacidade de generalização dos modelos treinados no NUAA, uma vez que o CASIA-FASD apresenta características distintas.
+
+\subsubsection{Organização de Dados}
+Na abordagem inicial, referenciada como \texttt{database\_old}, o \textit{dataset} era organizado sem restrições de identidade ou balanceamento de classes. Nesta versão, o sorteio das imagens para os conjuntos de treino e teste era puramente aleatório sobre o total de arquivos, o que permitia que imagens de um mesmo indivíduo estivessem presentes em ambos os conjuntos simultaneamente. No entanto, a versão atualizada do \textit{pipeline} de dados implementa rigorosidade metodológica através de três pilares fundamentais:
+
+\begin{itemize}
+  \item \textbf{Separação por IDs de Sujeitos (Subject\-Independent)}: a separação do \textit{dataset} baseada em IDs de sujeitos é essencial para garantir a integridade forense do sistema. Esta técnica evita o \textit{Data Leakage} (vazamento de dados) ao assegurar que as fisionomias presentes no treinamento sejam inéditas no teste. Isso força o modelo a aprender padrões intrínsecos de textura e cor de vivacidade em vez de memorizar identidades específicas.
+  \item \textbf{Equalização do Conjunto de Treino}: para mitigar o viés estatístico, aplicou-se a técnica de \textit{Undersampling} no conjunto de treinamento. Ao igualar a quantidade de imagens reais e falsas, impede-se que o classificador SVM se torne tendencioso para a classe majoritária (ataques), garantindo que a fronteira de decisão seja estabelecida de forma justa.
+  \item \textbf{Análise Multi-Seed (5 Sementes)}: para validar a estabilidade e reprodutibilidade do modelo, o experimento foi executado sob cinco sementes de aleatoriedade distintas (\(SEEDS = [42, 10, 23, 56, 89]\)). Esta abordagem permite o cálculo de médias (\(\mu\)) e desvios padrão (\(\sigma\)), fornecendo significância estatística e comprovando que os resultados não são fruto de um sorteio aleatório favorável.
+\end{itemize}
+
+
+\subsection{Método 1: LBP e SVM}
+O Método 1 consiste em uma abordagem clássica baseada em textura para detecção de ataques de apresentação facial. Cada imagem facial é normalizada para o tamanho de $224\times224$ pixels e convertida para tons de cinza, conforme sugerido na literatura \cite{Kusuma2019_ImageSpoofing}. Em seguida, aplica-se o descritor Local Binary Patterns (LBP) na variante \emph{uniforme}, utilizando $P=16$ vizinhos e raio $R=2$. O LBP uniformiza padrões de textura locais e gera um histograma de frequências que serve como vetor de características para a imagem.
+
+Para evitar vazamento de dados, o conjunto de dados NUAA foi particionado de modo que não houvesse compartilhamento de sujeitos entre treino, validação e teste. Foi adotado um \emph{hold-out} por sujeito, com aproximadamente 70 \% dos sujeitos para treino, 20 \% para validação e 10 \% para teste. Adicionalmente, uma divisão “oficial-like” reproduz os tamanhos de treino e teste reportados na literatura \cite{Tan2010_LivenessDetection}, garantindo 3.491 amostras reais e 5.761 falsas no treino e 1.614 reais e 1.748 falsas no teste. O processo de extração de características gera matrizes $X_{\mathrm{train}}$, $X_{\mathrm{val}}$ e $X_{\mathrm{test}}$, cada uma composta pelos histogramas LBP normalizados, acompanhados dos rótulos $y\in\{0,1\}$ e metadados de sujeito/sessão.
+
+Os vetores de características são padronizados via \texttt{StandardScaler} e utilizados como entrada para um classificador \textit{Support Vector Machine} com kernel radial (RBF). Para lidar com o desbalanceamento entre classes, as ponderações de classe foram ajustadas de forma inversamente proporcional à frequência das classes. Os hiperparâmetros $(C,\gamma)$ do SVM foram selecionados com validação cruzada em grupos (\texttt{GroupKFold}) utilizando os sujeitos como grupos. A métrica de seleção adotada foi a área sob a curva ROC (AUC), dado que essa métrica reflete melhor o equilíbrio entre Falsa Aceitação (FAR) e Falsa Rejeição (FRR) do sistema. Por fim, o modelo escolhido foi treinado com todos os dados de treino+validação e avaliado no conjunto de teste.
+
+
+\subsection{Método 2: VGG16}
+O Método 2 emprega a arquitetura de rede neural convolucional VGG16, pré-treinada no conjunto de dados ImageNet, para a tarefa de detecção de ataques de apresentação facial. A escolha da VGG16 baseia-se em sua comprovada eficácia em tarefas de reconhecimento visual e sua capacidade de extrair características discriminativas de imagens.
+
+\subsection{Pré-processamento e Aumento de Dados}
+Para garantir a compatibilidade com a arquitetura da rede, todas as imagens foram redimensionadas para a dimensão espacial de $224 \times 224$ pixels. A normalização dos dados seguiu o padrão exigido pelo modelo pré-treinado (subtração da média RGB do conjunto ImageNet).
+
+Para mitigar o risco de \textit{overfitting} e aumentar a capacidade de generalização do modelo, foi implementada uma etapa de aumento de dados (\textit{Data Augmentation}) em tempo de execução durante o treinamento. As transformações aplicadas incluem:
+\begin{itemize}
+    \item Espelhamento horizontal aleatório.
+    \item Rotação aleatória de até 10\%.
+    \item Zoom aleatório de até 10\%.
+    \item Ajustes aleatórios de contraste e brilho (fator de 0.2).
+\end{itemize}
+
+\subsection{Arquitetura do Modelo}
+
+A estratégia de extração de características consistiu em remover as camadas densas originais (\textit{top layers}) e congelar os pesos das camadas convolucionais (\textit{backbone}), impedindo sua atualização durante a fase inicial de treinamento.
+
+Sobre o extrator de características, foi acoplado um classificador personalizado composto por:
+\begin{enumerate}
+    \item Uma camada de \textit{Global Average Pooling}, que reduz a dimensionalidade dos mapas de características.
+    \item Uma camada de regularização \textit{Dropout} com taxa de $0.5$, para prevenir co-adaptação de neurônios.
+    \item Uma camada de saída com ativação \textit{Softmax} para a classificação das $N$ classes alvo.
+\end{enumerate}
+
+
+\subsection{Configuração Experimental e Treinamento}
+
+O modelo foi compilado utilizando o otimizador Adam com uma taxa de aprendizado inicial ($\alpha$) de $0.001$. A função de perda utilizada foi a Entropia Cruzada Categórica (\textit{Categorical Cross-entropy}).
+
+O treinamento foi configurado para um máximo de 20 épocas, com tamanho de lote (\textit{batch size}) de 32. Foram empregados os seguintes callbacks para monitoramento e controle:
+\begin{itemize}
+    \item \textbf{ModelCheckpoint}: Salvamento automático dos pesos do modelo que apresentaram o menor erro de validação (\textit{val\_loss}).
+    \item \textbf{EarlyStopping}: Interrupção prematura do treinamento caso não houvesse melhoria na perda de validação após 5 épocas consecutivas (\textit{patience}=5), restaurando-se os melhores pesos obtidos.
+\end{itemize}
+
+
+\subsection{Método 3: Análise de Textura de Cor}
+O Método 3 foca na detecção de fraudes através da análise da distribuição de cores. A premissa fundamental é que ataques de \textit{spoofing} (fotos impressas) introduzem distorções cromáticas previsíveis em comparação com capturas de rostos reais.
+
+\subsubsection{Processo de Extração e Treinamento}
+O \textit{pipeline} de execução do Método 3 é dividido em três etapas principais, refletidas nos \textit{scripts} desenvolvidos:
+
+\begin{enumerate}
+    \item \textbf{Extração de Características (\texttt{1\_extract\_cor.py}):} 
+    As imagens são convertidas do espaço RGB para os espaços de cor \textbf{HSV} e \textbf{YCbCr}. O objetivo é isolar a informação de cor da luminância. São extraídos histogramas de 32 bins para os canais Hue (H), Saturation (S), Cb e Cr. Estes histogramas são concatenados para formar um vetor de características que resume a assinatura cromática da imagem.
+    
+    \item \textbf{Classificação (\texttt{2\_svm.py}):} 
+    Utiliza-se um classificador \textit{Support Vector Machine} (SVM) com kernel \textit{Radial Basis Function} (RBF). O modelo é treinado para encontrar o hiperplano que melhor separa os vetores de características das classes ``real'' e ``fake''.
+    
+    \item \textbf{Avaliação de Métricas (\texttt{3\_metricas.py}):} 
+    O desempenho é avaliado através do cálculo da Acurácia, HTER (\textit{Half Total Error Rate}) e EER (\textit{Equal Error Rate}). São geradas matrizes de confusão, curvas ROC e histogramas de distribuição de scores para cada semente experimental.
+\end{enumerate}
+
+% ----------------------------------------------------------
+% Seção de Experimentos e Resultados
+% ----------------------------------------------------------
 \section{Experimentos e Resultados}
+\subsection{Método 1: LBP e SVM}
 
-\subsection{Desempenho do Método 1}
-
-A Tabela~\ref{tab:metodo1-metricas} resume as métricas obtidas pelo Método 1 no conjunto de teste NUAA. A matriz de confusão e a curva ROC correspondentes são exibidas na Figura~\ref{fig:metodo1-conf-roc}. As métricas empregadas incluem acurácia, \emph{False Acceptance Rate} (FAR), \emph{False Rejection Rate} (FRR), \emph{Half Total Error Rate} (HTER) e \emph{Equal Error Rate} (EER), definidas conforme as normas da biometria【162087600081438†L509-L518】.
+A Tabela~\ref{tab:metodo1-metricas} resume as métricas obtidas pelo Método 1 no conjunto de teste NUAA. A matriz de confusão e a curva ROC correspondentes são exibidas na Figura~\ref{fig:metodo1-conf-roc}. As métricas empregadas incluem acurácia, \emph{False Acceptance Rate} (FAR), \emph{False Rejection Rate} (FRR), \emph{Half Total Error Rate} (HTER) e \emph{Equal Error Rate} (EER), definidas conforme as normas da biometria.
 
 \begin{table}[H]
   \centering
@@ -250,24 +323,144 @@ A Tabela~\ref{tab:metodo1-metricas} resume as métricas obtidas pelo Método 1 
   \end{tabular}
 \end{table}
 
-Observa‑se que o método LBP+SVM alcançou acurácia de 97,37 \% e AUC de 0,9933. As taxas de erro se mantêm próximas de 2,6 \%, em especial o HTER e o EER. Comparativamente, a literatura reporta acurácias em torno de 92,5 \% e HTER de 7,9 \% para métodos baseados em LBP na NUAA【162087600081438†L520-L541】. A redução das taxas de erro verificada nesta implementação pode ser atribuída à divisão de dados por sujeito, ao pré‑processamento cuidadoso (normalização e recorte da face) e à otimização de hiperparâmetros com validação cruzada por grupo.
+Observa-se que o método LBP+SVM alcançou acurácia de 97,37 \% e AUC de 0,9933. As taxas de erro se mantêm próximas de 2,6 \%, em especial o HTER e o EER. Comparativamente, a literatura reporta acurácias em torno de 92,5 \% e HTER de 7,9 \% para métodos baseados em LBP na NUAA. A redução das taxas de erro verificada nesta implementação pode ser atribuída à divisão de dados por sujeito, ao pré-processamento cuidadoso (normalização e recorte da face) e à otimização de hiperparâmetros com validação cruzada por grupo.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.48\linewidth]{confusion_matrix_metodo1.png}
-    \includegraphics[width=0.48\linewidth]{roc_curve_metodo1.png}
-    \caption{À esquerda, matriz de confusão; à direita, curva ROC obtida para o Método 1 (LBP\,+\,SVM) no conjunto de teste NUAA. As imagens foram geradas pelos scripts de avaliação.}
+    \includegraphics[width=0.48\linewidth]{figures/confusion_matrix_metodo1_NUAA.jpeg}
+    \includegraphics[width=0.48\linewidth]{figures/roc_curve_metodo1_NUAA.jpeg}
+    \caption{À esquerda, matriz de confusão; à direita, curva ROC obtida para o Método 1 (LBP\,+\,SVM) no conjunto de teste NUAA. As imagens foram geradas pelos \textit{scripts} de avaliação.}
     \label{fig:metodo1-conf-roc}
 \end{figure}
 
 A matriz de confusão revela que 745 imagens falsas foram corretamente identificadas (verdadeiros negativos), enquanto 19 falsos positivos ocorreram. Do lado das imagens reais, 997 foram classificadas corretamente (verdadeiros positivos) e 28 foram classificadas como falsas (falsos negativos). A curva ROC mostra um desempenho discriminativo elevado, com AUC de 0,9933, corroborando a robustez do modelo frente às variações presentes no conjunto de teste.
 
+\subsubsection{Avaliação cruzada no CASIA-FASD}
 
-% ---
+Uma questão relevante para sistemas de detecção de ataques de apresentação é a capacidade de generalização: um classificador treinado em uma base de dados deve manter bom desempenho quando exposto a amostras de outro domínio. Para investigar esse aspecto, avaliou-se o modelo LBP + SVM treinado no NUAA sobre um conjunto de teste proveniente da base CASIA-FASD. Diferentemente do NUAA, o CASIA-FASD contém ataques variados (fotografias impressas e fotografias com recortes para os olhos ) e foi concebido como um complemento do NUAA, suprindo a falta de diversidade de ataques. Os experimentos foram realizados utilizando as mesmas configurações de pré-processamento e extração de características.
+
+As métricas obtidas nessa avaliação cruzada estão resumidas na Tabela~\ref{tab:metodo1-casia-metricas}. Para fins de comparação, incluem-se novamente as medidas de acurácia, precisão, recall, FAR, FRR, HTER, EER e AUC. A Figura~\ref{fig:metodo1-casia-conf-roc} ilustra a matriz de confusão e a curva ROC correspondentes.
+
+\begin{table}[H]
+  \centering
+  \caption{Métricas de desempenho do Método 1 (LBP\,+\,SVM) treinado no NUAA e testado no CASIA-FASD.}
+  \label{tab:metodo1-casia-metricas}
+  \begin{tabular}{lr}
+    \hline
+    \textbf{Métrica} & \textbf{Valor} \\
+    \hline
+    Acurácia & 0,7313 \\
+    Precisão (classe real) & 0,0000 \\
+    Recall (classe real) & 0,0000 \\
+    FAR (\%) & 3,08 \\
+    FRR (\%) & 100,0 \\
+    HTER (\%) & 51,54 \\
+    EER (\% aprox.) & 55,94 \\
+    AUC (ROC) & 0,4159 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.48\linewidth]{figures/confusion_matrix_metodo1_CASIA.jpeg}
+  \includegraphics[width=0.48\linewidth]{figures/roc_curve_metodo1_CASIA.jpeg}
+  \caption{À esquerda, matriz de confusão; à direita, curva ROC do Método 1 (LBP\,+\,SVM) treinado no NUAA e testado no CASIA-FASD.}
+  \label{fig:metodo1-casia-conf-roc}
+\end{figure}
+
+Os resultados demonstram que o classificador treinado exclusivamente no NUAA não generaliza para o CASIA-FASD. A acurácia de 73,13\% oculta um problema sério: todas as 591 imagens reais foram classificadas como falsas, resultando em recall zero e FRR de 100\%. Como a classe “fake” representa cerca de 81\% das amostras, a acurácia elevada decorre apenas do acerto nesses casos. A curva ROC apresenta AUC de 0,4159, inferior à linha aleatória, indicando que as probabilidades atribuídas pelo modelo estão invertidas para o novo domínio. Esse fraco desempenho pode ser explicado pela divergência entre as características texturais das duas bases; o CASIA-FASD incorpora ataques com recortes e reproduções em vídeo cujos artefatos não estão presentes no NUAA. Estudos prévios apontam que métodos baseados em LBP apresentam níveis de certeza distintos dependendo do tipo de ataque e do banco de dados e que não existe uma característica única capaz de discriminar todos os ataques de forma consistente. Portanto, é necessário treinar com dados mais diversos ou adotar descritores mais robustos (por exemplo, histogramas de cor ou \emph{deep features}) para obter generalização satisfatória.
+
+\subsection{Método 2: VGG16}
+\subsubsection{NUAA}
+
+O modelo VGG16, treinado e testado no dataset NUAA, demonstrou convergência ideal e desempenho superior na classificação de faces reais e ataques (\textit{spoofing}). Conforme observado na Tabela \ref{tab:results_nuaa}, o modelo atingiu uma acurácia global de 99,94\%.
+
+\begin{table}[h]
+    \centering
+    \caption{Métricas de Desempenho no Dataset NUAA}
+    \label{tab:results_nuaa}
+    \begin{tabular}{lc}
+        \hline
+        \textbf{Métrica} & \textbf{Valor Obtido} \\
+        \hline
+        Acurácia (Accuracy) & 99,94\% \\
+        Área sob a Curva (AUC) & 1,0000 \\
+        Equal Error Rate (EER) & 0,00\% \\
+        Taxa de Falsa Aceitação (FAR) & 0,13\% \\
+        Taxa de Falsa Rejeição (FRR) & 0,00\% \\
+        \hline
+    \end{tabular}
+\end{table}
+
+A matriz de confusão revelou que, de um total de 1.789 amostras de teste, o modelo cometeu apenas um erro, classificando incorretamente uma imagem \textit{fake} como real. Isso resultou em uma Taxa de Falsa Rejeição (FRR) de 0,00\% e uma Taxa de Falsa Aceitação (FAR) marginal de 0,13\%. A curva ROC apresentou um comportamento perfeito (AUC = 1.0), indicando uma separação linear completa entre as classes no espaço de características aprendido pelo modelo para este domínio específico.
+
+\subsubsection{Avaliação Cross\-Dataset (NUAA $\rightarrow$ CASIA-FASD)}
+
+Para avaliar a robustez do sistema em um cenário do mundo real, o modelo treinado exclusivamente no NUAA foi submetido ao dataset CASIA-FASD sem qualquer \textit{fine-tuning}. Observou-se uma degradação significativa nas métricas de desempenho, evidenciando o fenômeno de \textit{domain shift} (mudança de domínio).
+
+A acurácia global caiu para 78,57\%. Entretanto, a análise isolada da acurácia mascara o comportamento conservador do modelo. Ao analisar as taxas de erro, observou-se uma discrepância acentuada entre FAR e FRR:
+
+\begin{itemize}
+    \item \textbf{FAR (1,93\%):} O modelo manteve uma alta capacidade de segurança, bloqueando com sucesso quase 98\% dos ataques de \textit{spoofing}.
+    \item \textbf{FRR (81,39\%):} A taxa de rejeição de usuários legítimos foi excessivamente alta. De 591 acessos reais, o modelo rejeitou incorretamente 481 usuários.
+\end{itemize}
+
+A curva ROC no cenário \textit{cross-dataset} apresentou uma AUC de 0,8005 e um \textit{Equal Error Rate} (EER) de 29,50\%. O ponto de operação do EER destaca que o limiar de decisão padrão (0,5) não é ideal para novos domínios, favorecendo excessivamente a classe \textit{fake} em detrimento da classe \textit{real}.
+
+Os resultados evidenciam que o modelo VGG16 possui capacidade suficiente para extrair características discriminativas de \textit{liveness}, atingindo o excelente resultado no dataset em que foi treinado (NUAA). Contudo, a queda de desempenho no teste \textit{cross-dataset} revela que as características aprendidas são fortemente dependentes do domínio de origem (iluminação, sensor da câmera, fundo e resolução do NUAA).
+
+O alto índice de FRR (81,39\%) no CASIA-FASD indica que o modelo aprendeu uma representação restrita do que constitui uma ``face real'' baseada apenas nas amostras do NUAA. Quando exposto às faces reais do CASIA-FASD, que possuem distribuições estatísticas diferentes, o classificador tendeu a rejeitá-las por não corresponderem ao padrão ``real'' memorizado.
+
+Em termos práticos de segurança biométrica, o sistema atual comporta-se como \textbf{altamente seguro, mas pouco utilizável} em ambientes não controlados, pois embora bloqueie ataques com eficácia (FAR baixo), impede o acesso da maioria dos usuários legítimos (FRR alto). 
+
+\subsection{Método 3: Histogramas de Cor e SVM}
+
+A Tabela \ref{tab:resultados} consolida o desempenho obtido em diferentes cenários experimentais. Observa-se a queda de desempenho necessária para garantir a integridade forense (Database 1) e a variabilidade entre bases de dados distintas.
+
+\begin{table}[h]
+\centering
+\caption{Comparação de métricas por abordagem e base de dados.}
+\label{tab:resultados}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Cenário (Dataset)} & \textbf{Seed} & \textbf{Acurácia (\%)} & \textbf{HTER (\%)} & \textbf{EER (\%)} \\ \midrule
+Baseline (NUAA - Old)      & -             & 99,13                  & 0,98               & 0,66              \\ \midrule
+Database 1 (NUAA)          & 10            & 77,42                  & 19,72              & 2,73              \\
+Database 1 (NUAA)          & 23            & 76,30                  & 20,72              & 3,22              \\
+Database 1 (NUAA)          & 42            & 77,25                  & 19,87              & 2,88              \\
+Database 1 (NUAA)          & 56            & 76,52                  & 20,52              & 3,27              \\
+Database 1 (NUAA)          & 89            & 76,30                  & 20,72              & 2,75              \\ \midrule
+\textbf{Média Database 1}  & -             & \textbf{76,76}         & \textbf{20,31}     & \textbf{2,97}     \\ \midrule
+Database 2 (CASIA-FASD)    & 42            & 86,17                  & 13,84              & 13,87             \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Avaliação de Generalização: Teste Cruzado entre Bases}
+
+Os resultados obtidos no experimento de teste cruzado (\textit{cross-database testing}), utilizando a base CASIA-FASD para treinamento e o dataset NUAA para teste, revelaram uma degradação severa no desempenho do Método 3. Sob a semente 42, a acurácia do sistema despencou para $55,45\%$, com um erro de equilíbrio (\textit{Equal Error Rate} - EER) de $46,86\%$ e um HTER de $44,06\%$. Tais métricas situam o classificador em um patamar de desempenho marginalmente superior ao de uma escolha aleatória, contrastando drasticamente com o EER de $2,88\%$ obtido no teste intra-base da NUAA.
+
+Essa discrepância é atribuída ao fenômeno de \textit{Domain Shift} (mudança de domínio), onde as características cromáticas aprendidas pelo SVM em um ambiente não se traduzem para o outro. A sensibilidade dos histogramas nos espaços de cor HSV e YCbCr faz com que variações na calibração dos sensores das câmeras, balanço de branco e propriedades de refletância do papel fotográfico entre as bases CASIA e NUAA sejam interpretadas erroneamente. Enquanto a base NUAA foca em ataques estáticos e planos, a complexidade da CASIA, que inclui fotos curvadas e recortes para simulação de piscada, gera uma assinatura de cor distinta que o modelo treinado não consegue generalizar para novos cenários de captura.
+
+A Figura~\ref{fig:metodo3-casia-nuaa} ilustra a comparação entre a curva ROC apenas com a base CASIA-FASD e com a mudança de domínio.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.48\linewidth]{figures/roc_curve_metodo3_CASIA.png}
+  \includegraphics[width=0.48\linewidth]{figures/roc_curve_metodo3_CASIA_NUAA.png}
+  \caption{À esquerda, curva ROC para o CASIA-FASD; à direita, curva ROC do Método 3 treinado no CASIA-FASD e testado no NUAA.}
+  \label{fig:metodo1-casia-nuaa}
+\end{figure}
+
+Do ponto de vista da segurança da informação, estes resultados evidenciam que a análise pura de histogramas de cor, embora eficaz em ambientes controlados e específicos, carece de robustez para aplicações universais onde o hardware de captura não é padronizado. O alto índice de Falsa Rejeição (FRR) de $47,41\%$ e Falsa Aceitação (FAR) de $40,71\%$ demonstra que o sistema torna-se vulnerável e pouco prático sob mudança de domínio. Conclui-se, portanto, que para atingir níveis de segurança industriais, o Método 3 deve ser complementado por técnicas de normalização de cores mais agressivas ou integrado a abordagens híbridas que considerem características estruturais e de textura independentes da iluminação.
+
+% ------------------------------------------
 % Conclusão
-% ---
+% ------------------------------------------
 \section*{Conclusão}
-\addcontentsline{toc}{section}{Conclusão}
+colocar qual metodo teve o melhor desempenho, um resumo de todos os testes
+
+Para mitigar esse problema, sugere-se em trabalhos futuros a aplicação de técnicas de \textit{Domain Adaptation} ou a calibração do limiar de decisão (\textit{threshold calibration}) baseada no ponto de EER observado na curva ROC.
 
 % ----------------------------------------------------------
 % ELEMENTOS PÓS-TEXTUAIS

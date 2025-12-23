@@ -1,0 +1,4 @@
+Seed: 42
+Acuracia: 86.17%
+HTER: 13.84% (FAR: 13.81%, FRR: 13.87%)
+EER: 13.87%
