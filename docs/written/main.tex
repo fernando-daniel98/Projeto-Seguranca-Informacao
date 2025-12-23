@@ -176,7 +176,7 @@
 
 % resumo em português
 \begin{resumoumacoluna}
-    Este trabalho apresenta uma análise comparativa de três métodos distintos para detecção de ataques de apresentação facial (\textit{face anti-spoofing}), um problema crítico em sistemas de autenticação biométrica. Foram avaliados: (1) Local Binary Patterns (LBP) com classificador SVM, (2) Transfer Learning utilizando a arquitetura VGG16 pré-treinada no ImageNet, e (3) Histogramas de cor nos espaços HSV e YCbCr combinados com SVM. Os experimentos foram conduzidos nos datasets NUAA e CASIA-FASD, incluindo avaliações intra-dataset e cross-dataset para análise de generalização. Os resultados demonstraram que, em condições intra-dataset, o Método 3 alcançou desempenho superior (acurácia de 99,13\%, EER de 0,66\%), seguido pelo Método 2 (acurácia de 99,94\%) e pelo Método 1 (acurácia de 97,37\%). Entretanto, os testes cross-dataset revelaram severa degradação de desempenho em todos os métodos, evidenciando o fenômeno de \textit{Domain Shift}: o Método 2 apresentou FRR de 81,39\% no CASIA-FASD, o Método 3 teve acurácia de 55,45\% em testes cruzados, e o Método 1 obteve recall nulo para faces reais no novo domínio. Os resultados indicam que, embora características cromáticas e de \textit{deep learning} sejam altamente discriminativas em ambientes controlados, técnicas de adaptação de domínio são necessárias para aplicações em cenários não padronizados.
+    Este trabalho apresenta uma análise comparativa de três métodos distintos para detecção de ataques de apresentação facial (\textit{face anti-spoofing}), um problema crítico em sistemas de autenticação biométrica. Foram avaliados: (1) Local Binary Patterns (LBP) com classificador SVM, (2) Transfer Learning utilizando a arquitetura VGG16 pré-treinada no ImageNet, e (3) Histogramas de cor nos espaços HSV e YCbCr combinados com SVM. Os experimentos foram conduzidos nos datasets NUAA e CASIA-FASD, incluindo avaliações intra-dataset e cross-dataset para análise de generalização. Os resultados demonstraram que, em condições intra-dataset, o Método 2 (VGG16) alcançou o melhor desempenho com acurácia de 99,94\% e EER de 0,00\%, seguido pelo Método 3 (acurácia de 99,13\%, EER de 0,66\%) e pelo Método 1 (acurácia de 97,37\%, EER de 2,63\%). Entretanto, os testes cross-dataset revelaram severa degradação de desempenho em todos os métodos, evidenciando o fenômeno de \textit{Domain Shift}: o Método 2 apresentou FRR de 81,39\% no CASIA-FASD, o Método 3 teve acurácia de 55,45\% em testes cruzados, e o Método 1 obteve recall nulo para faces reais no novo domínio. Os resultados indicam que, embora características cromáticas e de \textit{deep learning} sejam altamente discriminativas em ambientes controlados, técnicas de adaptação de domínio são necessárias para aplicações em cenários não padronizados.
 
     \vspace{\onelineskip}
 
@@ -536,7 +536,7 @@ Do ponto de vista da segurança da informação, estes resultados evidenciam que
 \section*{Conclusão}
 Este trabalho apresentou uma análise comparativa sistemática de três paradigmas distintos para detecção de ataques de apresentação facial (PAD): características texturais baseadas em \textit{Local Binary Patterns} (LBP), características cromáticas extraídas de histogramas multiescala nos espaços HSV e YCbCr, e representações profundas obtidas via \textit{transfer learning} com a arquitetura VGG16 pré-treinada no ImageNet. A avaliação experimental foi conduzida nos datasets NUAA \textit{Photograph Imposter Database} e CASIA \textit{Face Anti-Spoofing Database}, seguindo protocolos de teste intra-dataset e cross-dataset para análise de robustez e capacidade de generalização.
 
-Em condições de avaliação intra-dataset, todos os métodos demonstraram elevada eficácia discriminativa. O Método 3 (Histogramas de Cor + SVM) obteve o melhor desempenho no cenário \textit{baseline}, alcançando acurácia de 99,13\%, HTER de 0,98\% e EER de 0,66\%. A arquitetura VGG16 (Método 2) atingiu resultados excepcionais no NUAA (acurácia de 99,94\%, com apenas um erro em 1.789 amostras), demonstrando a capacidade das \textit{deep features} em capturar padrões complexos de autenticidade facial. O método clássico LBP+SVM (Método 1) apresentou desempenho robusto, com acurácia de 97,37\%, AUC de 0,9933 e HTER de 2,63\%, superando resultados reportados na literatura para o dataset NUAA.
+Em condições de avaliação intra-dataset, todos os métodos demonstraram elevada eficácia discriminativa. A arquitetura VGG16 (Método 2) alcançou o melhor desempenho no NUAA, com acurácia de 99,94\%, EER de 0,00\% e apenas um erro em 1.789 amostras, demonstrando a capacidade superior das \textit{deep features} em capturar padrões complexos de autenticidade facial. O Método 3 (Histogramas de Cor + SVM) obteve o segundo melhor resultado no cenário \textit{baseline}, com acurácia de 99,13\%, HTER de 0,98\% e EER de 0,66\%. O método clássico LBP+SVM (Método 1) apresentou desempenho robusto, com acurácia de 97,37\%, AUC de 0,9933 e HTER de 2,61\%, superando resultados reportados na literatura para o dataset NUAA.
 
 Entretanto, os experimentos cross-dataset revelaram uma vulnerabilidade crítica comum às três abordagens: a sensibilidade ao \textit{Domain Shift}. Quando submetidos a dados de um domínio não observado durante o treinamento, todos os métodos sofreram degradação acentuada de desempenho. Especificamente:
 
@@ -573,24 +573,6 @@ Em conclusão, este estudo contribui para o corpo de conhecimento em segurança 
 % ---
 
 % \twocolumn[    		% INICIO DE ARTIGO EM DUAS COLUNAS
-
-% titulo em inglês
-\titulo{Comparative Analysis of Face Anti-Spoofing Detection Methods: LBP, Deep Learning and Color Histograms}
-\emptythanks
-\maketitle
-
-% resumo em português
-\renewcommand{\resumoname}{Abstract}
-\begin{resumoumacoluna}
- \begin{otherlanguage*}{english}
-   This work presents a systematic comparative analysis of three distinct paradigms for Presentation Attack Detection (PAD) in facial biometric systems. The evaluated methods comprise: (1) texture-based features using Local Binary Patterns (LBP) with SVM classifier, (2) deep representations via Transfer Learning using VGG16 architecture pre-trained on ImageNet, and (3) chromatic features extracted from color histograms in HSV and YCbCr spaces combined with SVM. Experiments were conducted on NUAA Photograph Imposter Database and CASIA Face Anti-Spoofing Database following both intra-dataset and cross-dataset evaluation protocols. In intra-dataset scenarios, Method 3 achieved superior performance (99.13\% accuracy, 0.66\% EER), followed by Method 2 (99.94\% accuracy) and Method 1 (97.37\% accuracy, 0.9933 AUC). However, cross-dataset evaluation revealed severe performance degradation across all approaches due to Domain Shift: Method 2 exhibited 81.39\% FRR on CASIA-FASD, Method 3 dropped to 55.45\% accuracy in cross-testing, and Method 1 achieved 0\% recall for real faces when trained on NUAA and tested on CASIA-FASD. The results demonstrate that while chromatic and deep learning features are highly discriminative in controlled environments, domain adaptation techniques are essential for robust PAD systems in non-standardized real-world deployments.
-
-   \vspace{\onelineskip}
- 
-   \noindent
-   \textbf{Keywords}: face anti-spoofing. presentation attack detection. domain shift. machine learning. deep learning. biometric security.
- \end{otherlanguage*}  
-\end{resumoumacoluna}
 
 % ]  				% FIM DE ARTIGO EM DUAS COLUNAS
 % ---
