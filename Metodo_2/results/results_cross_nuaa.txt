@@ -1,0 +1,28 @@
+============================================================
+AVALIAÇÃO CROSS-DATASET: CASIA-FASD → NUAA
+============================================================
+
+Acurácia:  0.4293 (42.93%)
+Precisão:  0.6000
+Recall:    0.0117
+F1-Score:  0.0230
+
+FAR:  0.0105 (1.05%)
+FRR:  0.9883 (98.83%)
+HTER: 0.4994 (49.94%)
+EER:  0.1296 (12.96%)
+AUC:  0.9327
+
+Matriz de Confusão:
+[[ 756    8]
+ [1013   12]]
+
+Relatório:
+              precision    recall  f1-score   support
+
+    Fake (0)       0.43      0.99      0.60       764
+    Real (1)       0.60      0.01      0.02      1025
+
+    accuracy                           0.43      1789
+   macro avg       0.51      0.50      0.31      1789
+weighted avg       0.53      0.43      0.27      1789

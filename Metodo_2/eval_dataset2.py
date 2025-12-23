@@ -1,7 +1,7 @@
 """
 eval_dataset2.py
-Avalia o modelo treinado no NUAA usando o dataset2 (CASIA-FASD).
-Testa a generalização cross-dataset do modelo.
+Avalia o modelo treinado no CASIA-FASD usando o dataset completo do NUAA.
+Testa a generalização cross-dataset do modelo (CASIA → NUAA full).
 """
 
 import numpy as np
@@ -86,13 +86,13 @@ def main():
     RESULTS_DIR = BASE_DIR / "results"
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Dataset2 (CASIA-FASD)
-    dataset2_test = PROJECT_ROOT / "dataset2" / "test"
+    # Dataset NUAA completo (train+val+test) para avaliação cross-dataset
+    dataset_nuaa_test = PROJECT_ROOT / "dataset" / "test"
     
-    if not dataset2_test.exists():
+    if not dataset_nuaa_test.exists():
         raise SystemExit(
-            f"❌ Dataset2 não encontrado em {dataset2_test}\n"
-            "   Rode primeiro: python database2.py"
+            f"❌ Dataset NUAA não encontrado em {dataset_nuaa_test}\n"
+            "   Rode primeiro: python database.py"
         )
 
     IMG_SIZE = (224, 224)
@@ -111,15 +111,15 @@ def main():
     print("=" * 60)
     print("AVALIAÇÃO CROSS-DATASET")
     print("=" * 60)
-    print(f"Modelo treinado em: NUAA (dataset)")
-    print(f"Avaliando em: CASIA-FASD (dataset2)")
+    print(f"Modelo treinado em: CASIA-FASD (dataset2)")
+    print(f"Avaliando em: NUAA completo (dataset)")
     print(f"\nCarregando modelo: {model_path.name}")
     
     model = models.load_model(str(model_path))
 
-    print(f"Carregando dataset2/test...")
+    print(f"Carregando dataset NUAA/test...")
     test_ds = tf.keras.utils.image_dataset_from_directory(
-        str(dataset2_test),
+        str(dataset_nuaa_test),
         image_size=IMG_SIZE,
         batch_size=BATCH_SIZE,
         label_mode="categorical",
@@ -158,7 +158,7 @@ def main():
 
     # Exibir
     print("\n" + "=" * 60)
-    print("RESULTADOS: NUAA → CASIA-FASD")
+    print("RESULTADOS: CASIA-FASD → NUAA")
     print("=" * 60)
     print(f"\nAcurácia:  {acc:.4f} ({acc*100:.2f}%)")
     print(f"Precisão:  {prec:.4f}")
@@ -173,10 +173,10 @@ def main():
     print(f"\n{report}")
 
     # Salvar resultados
-    txt_path = RESULTS_DIR / "results_cross_dataset2.txt"
+    txt_path = RESULTS_DIR / "results_cross_nuaa.txt"
     with open(txt_path, "w", encoding="utf-8") as f:
         f.write("=" * 60 + "\n")
-        f.write("AVALIAÇÃO CROSS-DATASET: NUAA → CASIA-FASD\n")
+        f.write("AVALIAÇÃO CROSS-DATASET: CASIA-FASD → NUAA\n")
         f.write("=" * 60 + "\n\n")
         f.write(f"Acurácia:  {acc:.4f} ({acc*100:.2f}%)\n")
         f.write(f"Precisão:  {prec:.4f}\n")
@@ -195,13 +195,13 @@ def main():
     print(f"\n✓ Resultados salvos em: {txt_path}")
 
     # Gráficos
-    plot_confusion_matrix(cm, RESULTS_DIR / "confusion_matrix_dataset2.png", 
-                          "Cross-Dataset: NUAA → CASIA-FASD")
+    plot_confusion_matrix(cm, RESULTS_DIR / "confusion_matrix_nuaa.png", 
+                          "Cross-Dataset: CASIA-FASD → NUAA")
     print(f"✓ Matriz de confusão salva")
     
     plot_roc_curve(y_true, y_pred_proba, eer, auc_score, 
-                   RESULTS_DIR / "roc_curve_dataset2.png",
-                   "Curva ROC - Cross-Dataset (NUAA → CASIA-FASD)")
+                   RESULTS_DIR / "roc_curve_nuaa.png",
+                   "Curva ROC - Cross-Dataset (CASIA-FASD → NUAA)")
     print(f"✓ Curva ROC salva")
 
     print("\n" + "=" * 60)
