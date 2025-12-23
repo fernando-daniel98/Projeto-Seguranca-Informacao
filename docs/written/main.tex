@@ -176,12 +176,12 @@
 
 % resumo em português
 \begin{resumoumacoluna}
-    Este trabalho apresenta uma análise comparativa de três métodos distintos para detecção de ataques de apresentação facial (\textit{face anti-spoofing}), um problema crítico em sistemas de autenticação biométrica. Foram avaliados: (1) Local Binary Patterns (LBP) com classificador SVM, (2) Transfer Learning utilizando a arquitetura VGG16 pré-treinada no ImageNet, e (3) Histogramas de cor nos espaços HSV e YCbCr combinados com SVM. Os experimentos foram conduzidos no dataset NUAA, amplamente utilizado na literatura. ... [falar brevemente sobre os resultados e concluir ao final]
+    Este trabalho apresenta uma análise comparativa de três métodos distintos para detecção de ataques de apresentação facial (\textit{face anti-spoofing}), um problema crítico em sistemas de autenticação biométrica. Foram avaliados: (1) Local Binary Patterns (LBP) com classificador SVM, (2) Transfer Learning utilizando a arquitetura VGG16 pré-treinada no ImageNet, e (3) Histogramas de cor nos espaços HSV e YCbCr combinados com SVM. Os experimentos foram conduzidos nos datasets NUAA e CASIA-FASD, incluindo avaliações intra-dataset e cross-dataset para análise de generalização. Os resultados demonstraram que, em condições intra-dataset, o Método 3 alcançou desempenho superior (acurácia de 99,13\%, EER de 0,66\%), seguido pelo Método 2 (acurácia de 99,94\%) e pelo Método 1 (acurácia de 97,37\%). Entretanto, os testes cross-dataset revelaram severa degradação de desempenho em todos os métodos, evidenciando o fenômeno de \textit{Domain Shift}: o Método 2 apresentou FRR de 81,39\% no CASIA-FASD, o Método 3 teve acurácia de 55,45\% em testes cruzados, e o Método 1 obteve recall nulo para faces reais no novo domínio. Os resultados indicam que, embora características cromáticas e de \textit{deep learning} sejam altamente discriminativas em ambientes controlados, técnicas de adaptação de domínio são necessárias para aplicações em cenários não padronizados.
 
     \vspace{\onelineskip}
 
     \noindent
-    \textbf{Palavras-chave}: face anti-spoofing. NUAA. autenticação biométrica.
+    \textbf{Palavras-chave}: face anti-spoofing. NUAA. CASIA-FASD. autenticação biométrica. domain shift.
 \end{resumoumacoluna}
 
 % ]  				% FIM DE ARTIGO EM DUAS COLUNAS
@@ -231,6 +231,21 @@ Na abordagem inicial, referenciada como \texttt{database\_old}, o \textit{datase
   \item \textbf{Equalização do Conjunto de Treino}: para mitigar o viés estatístico, aplicou-se a técnica de \textit{Undersampling} no conjunto de treinamento. Ao igualar a quantidade de imagens reais e falsas, impede-se que o classificador SVM se torne tendencioso para a classe majoritária (ataques), garantindo que a fronteira de decisão seja estabelecida de forma justa.
   \item \textbf{Análise Multi-Seed (5 Sementes)}: para validar a estabilidade e reprodutibilidade do modelo, o experimento foi executado sob cinco sementes de aleatoriedade distintas (\(SEEDS = [42, 10, 23, 56, 89]\)). Esta abordagem permite o cálculo de médias (\(\mu\)) e desvios padrão (\(\sigma\)), fornecendo significância estatística e comprovando que os resultados não são fruto de um sorteio aleatório favorável.
 \end{itemize}
+
+\subsubsection{Aquisição de Dados e Disponibilização do Código}
+
+Os conjuntos de dados NUAA e CASIA-FASD utilizados neste estudo foram obtidos através de suas respectivas APIs públicas. Para facilitar a reprodutibilidade dos experimentos, todo o código-fonte desenvolvido foi disponibilizado publicamente no repositório GitHub do projeto: \url{https://github.com/fernando-daniel98/Projeto-Seguranca-Informacao}.
+
+O repositório contém a implementação completa de todo o \textit{pipeline} experimental, incluindo:
+
+\begin{itemize}
+  \item \textbf{Aquisição automatizada dos datasets}: \textit{scripts} que realizam o \textit{download} e organização das imagens diretamente das APIs, estruturando automaticamente os diretórios conforme requerido pelos algoritmos de processamento.
+  \item \textbf{Pré-processamento e extração de características}: implementações dos três métodos avaliados (LBP+SVM, VGG16 e Histogramas de Cor+SVM), incluindo todos os parâmetros de configuração utilizados nos experimentos reportados.
+  \item \textbf{Reprodução integral dos experimentos}: \textit{scripts} de execução em \textit{shell} (\texttt{.sh}) que permitem replicar todos os resultados apresentados neste trabalho, incluindo avaliações intra-dataset, cross-dataset e análises multi-seed.
+  \item \textbf{Geração de métricas e visualizações}: código para cálculo de todas as métricas biométricas (acurácia, FAR, FRR, HTER, EER, AUC), bem como geração de matrizes de confusão, curvas ROC e demais visualizações apresentadas.
+\end{itemize}
+
+O repositório inclui instruções detalhadas no arquivo \texttt{README.md}, guiando o usuário desde a instalação de dependências até a execução completa dos experimentos. Esta disponibilização visa permitir a validação independente dos resultados, facilitar trabalhos futuros que utilizem ou estendam as metodologias propostas, e contribuir para a comunidade científica de segurança biométrica.
 
 
 \subsection{Método 1: LBP e SVM}
@@ -519,21 +534,33 @@ Do ponto de vista da segurança da informação, estes resultados evidenciam que
 % Conclusão
 % ------------------------------------------
 \section*{Conclusão}
-Este trabalho realizou uma análise comparativa de três métodos distintos para a detecção de ataques de apresentação facial: LBP+SVM, Transfer Learning com VGG16 e Histogramas de Cor com SVM. Os experimentos conduzidos nos datasets NUAA e CASIA-FASD permitiram avaliar não apenas a eficácia de cada técnica em ambientes conhecidos, mas também sua capacidade de generalização em cenários de mudança de domínio.
+Este trabalho apresentou uma análise comparativa sistemática de três paradigmas distintos para detecção de ataques de apresentação facial (PAD): características texturais baseadas em \textit{Local Binary Patterns} (LBP), características cromáticas extraídas de histogramas multiescala nos espaços HSV e YCbCr, e representações profundas obtidas via \textit{transfer learning} com a arquitetura VGG16 pré-treinada no ImageNet. A avaliação experimental foi conduzida nos datasets NUAA \textit{Photograph Imposter Database} e CASIA \textit{Face Anti-Spoofing Database}, seguindo protocolos de teste intra-dataset e cross-dataset para análise de robustez e capacidade de generalização.
 
-Os resultados demonstram que, em condições intra-dataset (mesmo domínio de treino e teste), o Método 3 (Histogramas de Cor + SVM) apresentou o melhor desempenho geral, atingindo uma acurácia de 99,13% e um EER de 0,66% no cenário baseline. A arquitetura VGG16 (Método 2) também exibiu resultados excepcionais no dataset NUAA, com acurácia de 99,94% e separação quase perfeita entre as classes. O método clássico LBP+SVM (Método 1), embora robusto com 97,37% de acurácia, situou-se ligeiramente abaixo das demais abordagens.
+Em condições de avaliação intra-dataset, todos os métodos demonstraram elevada eficácia discriminativa. O Método 3 (Histogramas de Cor + SVM) obteve o melhor desempenho no cenário \textit{baseline}, alcançando acurácia de 99,13\%, HTER de 0,98\% e EER de 0,66\%. A arquitetura VGG16 (Método 2) atingiu resultados excepcionais no NUAA (acurácia de 99,94\%, com apenas um erro em 1.789 amostras), demonstrando a capacidade das \textit{deep features} em capturar padrões complexos de autenticidade facial. O método clássico LBP+SVM (Método 1) apresentou desempenho robusto, com acurácia de 97,37\%, AUC de 0,9933 e HTER de 2,63\%, superando resultados reportados na literatura para o dataset NUAA.
 
-Entretanto, a avaliação cross-dataset revelou uma limitação severa em todas as abordagens: o fenômeno do Domain Shift. Observou-se que:
+Entretanto, os experimentos cross-dataset revelaram uma vulnerabilidade crítica comum às três abordagens: a sensibilidade ao \textit{Domain Shift}. Quando submetidos a dados de um domínio não observado durante o treinamento, todos os métodos sofreram degradação acentuada de desempenho. Especificamente:
 
-O modelo VGG16 sofreu uma degradação significativa, com a Taxa de Falsa Rejeição (FRR) saltando para 81,39% ao ser testado no CASIA-FASD.
+\begin{itemize}
+    \item O Método 2 (VGG16) apresentou comportamento conservador excessivo no CASIA-FASD, com FRR de 81,39\%, rejeitando incorretamente a maioria dos usuários legítimos. Na direção inversa (CASIA-FASD $\rightarrow$ NUAA), a FRR alcançou 98,80\%, indicando colapso na capacidade de reconhecimento de faces reais.
+    \item O Método 3 (Histogramas de Cor) demonstrou alta sensibilidade a variações nas propriedades espectrais dos sensores de captura, reduzindo sua acurácia para 55,45\% e EER para 46,86\% nos testes cross-dataset, aproximando-se do desempenho aleatório.
+    \item O Método 1 (LBP+SVM) falhou completamente na identificação de usuários legítimos do CASIA-FASD quando treinado no NUAA (recall de 0\% para a classe real, FRR de 100\%), embora tenha mantido baixa FAR. A inversão do protocolo (treino no CASIA-FASD, teste no NUAA) resultou em melhor generalização (acurácia de 85,58\%, HTER de 12,91\%), sugerindo que a diversidade de ataques do CASIA-FASD contribui para extração de características mais representativas.
+\end{itemize}
 
-O método de Histogramas de Cor mostrou-se altamente sensível a variações de hardware e iluminação, com a acurácia caindo para 55,45% em testes cruzados.
+A análise dos resultados permite inferir que as representações aprendidas pelos três métodos são fortemente acopladas às características idiossincráticas do domínio de treinamento, incluindo propriedades de iluminação ambiente, resposta espectral do sensor de captura, resolução espacial, profundidade de cor e artefatos de compressão. Consequentemente, embora as características cromáticas e de \textit{deep learning} sejam altamente discriminativas para distinguir faces reais de ataques de impressão fotográfica em ambientes controlados, elas carecem de invariância necessária para aplicações em sistemas biométricos implantados em condições não padronizadas do mundo real.
 
-O classificador LBP+SVM falhou em identificar usuários reais no novo domínio, resultando em um recall de 0% para a classe real no CASIA-FASD.
+Do ponto de vista da segurança da informação, estes achados evidenciam que sistemas PAD baseados exclusivamente em um único tipo de característica e treinados em domínios restritos representam um risco operacional significativo. A alta taxa de falsa rejeição observada nos testes cross-dataset compromete severamente a usabilidade do sistema, enquanto a possibilidade de overfitting a artefatos específicos de um dataset pode criar vulnerabilidades exploráveis por adversários com conhecimento das características de treinamento.
 
-Em suma, embora as características cromáticas e de deep learning sejam altamente discriminativas para distinguir faces reais de ataques de impressão em cenários controlados , elas carecem de robustez para aplicações universais onde o hardware e o ambiente de captura não são padronizados.
+Para trabalhos futuros, recomendam-se as seguintes direções de pesquisa:
 
-Para trabalhos futuros, sugere-se a exploração de técnicas de Domain Adaptation para mitigar a discrepância entre bases de dados, além da implementação de calibração de limiar de decisão (threshold calibration) baseada no ponto de EER observado. Abordagens híbridas que combinem características estruturais, texturais e cromáticas também podem oferecer uma solução mais resiliente para sistemas de biometria facial em condições de mundo real.
+\begin{enumerate}
+    \item \textbf{Adaptação de Domínio:} Exploração de técnicas de \textit{Domain Adaptation} não supervisionadas ou semi-supervisionadas para alinhar distribuições de características entre domínios de origem e destino, reduzindo o impacto do \textit{Domain Shift}.
+    \item \textbf{Calibração Dinâmica de Limiar:} Implementação de mecanismos de calibração do limiar de decisão baseados no ponto de operação do EER observado durante a validação, permitindo ajuste fino do equilíbrio FAR-FRR conforme as características do ambiente de implantação.
+    \item \textbf{Fusão Multimodal:} Desenvolvimento de arquiteturas híbridas que combinem características estruturais (LBP), cromáticas (histogramas) e semânticas (\textit{deep features}) através de estratégias de fusão tardia ou intermediária, explorando a complementaridade dos diferentes espaços de representação.
+    \item \textbf{Aprendizado com Dados Aumentados:} Investigação de técnicas de aumento de dados que simulem variações realistas de iluminação, sensores e tipos de ataque durante o treinamento, aumentando a diversidade do conjunto de dados e potencialmente melhorando a capacidade de generalização.
+    \item \textbf{Meta-Learning e Few-Shot Learning:} Aplicação de paradigmas de meta-aprendizado para permitir adaptação rápida a novos domínios com quantidade limitada de amostras rotuladas, viabilizando personalização do sistema PAD para contextos específicos de implantação.
+\end{enumerate}
+
+Em conclusão, este estudo contribui para o corpo de conhecimento em segurança biométrica ao fornecer uma avaliação empírica rigorosa de três abordagens representativas da literatura PAD, destacando tanto suas capacidades discriminativas em condições ideais quanto suas limitações fundamentais frente ao desafio de generalização cross-dataset. Os resultados reforçam a necessidade de desenvolvimento de sistemas PAD mais robustos e adaptativos para garantir a segurança e a usabilidade de tecnologias de autenticação facial em aplicações críticas do mundo real.
 
 
 % ----------------------------------------------------------
@@ -556,12 +583,12 @@ Para trabalhos futuros, sugere-se a exploração de técnicas de Domain Adaptati
 \renewcommand{\resumoname}{Abstract}
 \begin{resumoumacoluna}
  \begin{otherlanguage*}{english}
-   This work presents a comparative analysis of three distinct methods for face anti-spoofing detection, a critical problem in biometric authentication systems. The following methods were evaluated: (1) Local Binary Patterns (LBP) with SVM classifier, (2) Transfer Learning using VGG16 architecture pre-trained on ImageNet, and (3) Color histograms in HSV and YCbCr color spaces combined with SVM. The experiments were conducted on the NUAA dataset, widely used in the literature. Method 3 (Color Histograms + SVM) achieved the best results, reaching 99.13\% accuracy, 0.98\% HTER, and 0.66\% EER. The results demonstrate that color-based features are highly discriminative for distinguishing real faces from photo print attacks, outperforming texture-based and deep learning approaches in this specific scenario.
+   This work presents a systematic comparative analysis of three distinct paradigms for Presentation Attack Detection (PAD) in facial biometric systems. The evaluated methods comprise: (1) texture-based features using Local Binary Patterns (LBP) with SVM classifier, (2) deep representations via Transfer Learning using VGG16 architecture pre-trained on ImageNet, and (3) chromatic features extracted from color histograms in HSV and YCbCr spaces combined with SVM. Experiments were conducted on NUAA Photograph Imposter Database and CASIA Face Anti-Spoofing Database following both intra-dataset and cross-dataset evaluation protocols. In intra-dataset scenarios, Method 3 achieved superior performance (99.13\% accuracy, 0.66\% EER), followed by Method 2 (99.94\% accuracy) and Method 1 (97.37\% accuracy, 0.9933 AUC). However, cross-dataset evaluation revealed severe performance degradation across all approaches due to Domain Shift: Method 2 exhibited 81.39\% FRR on CASIA-FASD, Method 3 dropped to 55.45\% accuracy in cross-testing, and Method 1 achieved 0\% recall for real faces when trained on NUAA and tested on CASIA-FASD. The results demonstrate that while chromatic and deep learning features are highly discriminative in controlled environments, domain adaptation techniques are essential for robust PAD systems in non-standardized real-world deployments.
 
    \vspace{\onelineskip}
  
    \noindent
-   \textbf{Keywords}: face anti-spoofing. presentation attack detection. machine learning. SVM. deep learning. biometrics.
+   \textbf{Keywords}: face anti-spoofing. presentation attack detection. domain shift. machine learning. deep learning. biometric security.
  \end{otherlanguage*}  
 \end{resumoumacoluna}
 
