@@ -1,0 +1,33 @@
+Método 1: LBP + SVM
+Treinamento: CASIA-FASD (dataset2)
+Teste: NUAA (dataset)
+============================================================
+
+Dataset de teste (NUAA):
+  Total de imagens: 1789
+  Real (1): 1025
+  Fake (0): 764
+
+Resultados:
+  Acurácia:  0.8558
+  Precisão:  0.9764
+  Recall:    0.7668
+  F1-Score:  0.8590
+  AUC-ROC:   0.9159
+  FAR:       0.0249
+  FRR:       0.2332
+  HTER:      0.1290
+
+Matriz de Confusão:
+  [[TN=745, FP=19],
+   [FN=239, TP=786]]
+
+Classification Report:
+              precision    recall  f1-score   support
+
+        Fake       0.76      0.98      0.85       764
+        Real       0.98      0.77      0.86      1025
+
+    accuracy                           0.86      1789
+   macro avg       0.87      0.87      0.86      1789
+weighted avg       0.88      0.86      0.86      1789

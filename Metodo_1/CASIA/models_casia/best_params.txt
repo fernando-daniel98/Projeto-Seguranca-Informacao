@@ -1,0 +1,9 @@
+Melhores Hiperparâmetros:
+C: 10.0
+gamma: scale
+
+Melhor AUC (validação): 0.9676
+
+Avaliação no conjunto de validação:
+Acurácia: 0.9028
+AUC-ROC:  0.9676
