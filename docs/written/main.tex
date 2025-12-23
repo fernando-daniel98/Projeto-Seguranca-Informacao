@@ -244,7 +244,39 @@ Os vetores de características são padronizados via \texttt{StandardScaler} e u
 \subsection{Método 2: VGG16}
 O Método 2 emprega a arquitetura de rede neural convolucional VGG16, pré-treinada no conjunto de dados ImageNet, para a tarefa de detecção de ataques de apresentação facial. A escolha da VGG16 baseia-se em sua comprovada eficácia em tarefas de reconhecimento visual e sua capacidade de extrair características discriminativas de imagens.
 
-falar mais sobre o método 2
+\subsection{Pré-processamento e Aumento de Dados}
+Para garantir a compatibilidade com a arquitetura da rede, todas as imagens foram redimensionadas para a dimensão espacial de $224 \times 224$ pixels. A normalização dos dados seguiu o padrão exigido pelo modelo pré-treinado (subtração da média RGB do conjunto ImageNet).
+
+Para mitigar o risco de \textit{overfitting} e aumentar a capacidade de generalização do modelo, foi implementada uma etapa de aumento de dados (\textit{Data Augmentation}) em tempo de execução durante o treinamento. As transformações aplicadas incluem:
+\begin{itemize}
+    \item Espelhamento horizontal aleatório.
+    \item Rotação aleatória de até 10\%.
+    \item Zoom aleatório de até 10\%.
+    \item Ajustes aleatórios de contraste e brilho (fator de 0.2).
+\end{itemize}
+
+\subsection{Arquitetura do Modelo}
+
+A estratégia de extração de características consistiu em remover as camadas densas originais (\textit{top layers}) e congelar os pesos das camadas convolucionais (\textit{backbone}), impedindo sua atualização durante a fase inicial de treinamento.
+
+Sobre o extrator de características, foi acoplado um classificador personalizado composto por:
+\begin{enumerate}
+    \item Uma camada de \textit{Global Average Pooling}, que reduz a dimensionalidade dos mapas de características.
+    \item Uma camada de regularização \textit{Dropout} com taxa de $0.5$, para prevenir co-adaptação de neurônios.
+    \item Uma camada de saída com ativação \textit{Softmax} para a classificação das $N$ classes alvo.
+\end{enumerate}
+
+
+\subsection{Configuração Experimental e Treinamento}
+
+O modelo foi compilado utilizando o otimizador Adam com uma taxa de aprendizado inicial ($\alpha$) de $0.001$. A função de perda utilizada foi a Entropia Cruzada Categórica (\textit{Categorical Cross-entropy}).
+
+O treinamento foi configurado para um máximo de 20 épocas, com tamanho de lote (\textit{batch size}) de 32. Foram empregados os seguintes callbacks para monitoramento e controle:
+\begin{itemize}
+    \item \textbf{ModelCheckpoint}: Salvamento automático dos pesos do modelo que apresentaram o menor erro de validação (\textit{val\_loss}).
+    \item \textbf{EarlyStopping}: Interrupção prematura do treinamento caso não houvesse melhoria na perda de validação após 5 épocas consecutivas (\textit{patience}=5), restaurando-se os melhores pesos obtidos.
+\end{itemize}
+
 
 \subsection{Método 3: Análise de Textura de Cor}
 O Método 3 foca na detecção de fraudes através da análise da distribuição de cores. A premissa fundamental é que ataques de \textit{spoofing} (fotos impressas) introduzem distorções cromáticas previsíveis em comparação com capturas de rostos reais.
