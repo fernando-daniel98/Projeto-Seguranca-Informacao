@@ -519,9 +519,22 @@ Do ponto de vista da segurança da informação, estes resultados evidenciam que
 % Conclusão
 % ------------------------------------------
 \section*{Conclusão}
-colocar qual metodo teve o melhor desempenho, um resumo de todos os testes
+Este trabalho realizou uma análise comparativa de três métodos distintos para a detecção de ataques de apresentação facial: LBP+SVM, Transfer Learning com VGG16 e Histogramas de Cor com SVM. Os experimentos conduzidos nos datasets NUAA e CASIA-FASD permitiram avaliar não apenas a eficácia de cada técnica em ambientes conhecidos, mas também sua capacidade de generalização em cenários de mudança de domínio.
 
-Para mitigar esse problema, sugere-se em trabalhos futuros a aplicação de técnicas de \textit{Domain Adaptation} ou a calibração do limiar de decisão (\textit{threshold calibration}) baseada no ponto de EER observado na curva ROC.
+Os resultados demonstram que, em condições intra-dataset (mesmo domínio de treino e teste), o Método 3 (Histogramas de Cor + SVM) apresentou o melhor desempenho geral, atingindo uma acurácia de 99,13% e um EER de 0,66% no cenário baseline. A arquitetura VGG16 (Método 2) também exibiu resultados excepcionais no dataset NUAA, com acurácia de 99,94% e separação quase perfeita entre as classes. O método clássico LBP+SVM (Método 1), embora robusto com 97,37% de acurácia, situou-se ligeiramente abaixo das demais abordagens.
+
+Entretanto, a avaliação cross-dataset revelou uma limitação severa em todas as abordagens: o fenômeno do Domain Shift. Observou-se que:
+
+O modelo VGG16 sofreu uma degradação significativa, com a Taxa de Falsa Rejeição (FRR) saltando para 81,39% ao ser testado no CASIA-FASD.
+
+O método de Histogramas de Cor mostrou-se altamente sensível a variações de hardware e iluminação, com a acurácia caindo para 55,45% em testes cruzados.
+
+O classificador LBP+SVM falhou em identificar usuários reais no novo domínio, resultando em um recall de 0% para a classe real no CASIA-FASD.
+
+Em suma, embora as características cromáticas e de deep learning sejam altamente discriminativas para distinguir faces reais de ataques de impressão em cenários controlados , elas carecem de robustez para aplicações universais onde o hardware e o ambiente de captura não são padronizados.
+
+Para trabalhos futuros, sugere-se a exploração de técnicas de Domain Adaptation para mitigar a discrepância entre bases de dados, além da implementação de calibração de limiar de decisão (threshold calibration) baseada no ponto de EER observado. Abordagens híbridas que combinem características estruturais, texturais e cromáticas também podem oferecer uma solução mais resiliente para sistemas de biometria facial em condições de mundo real.
+
 
 % ----------------------------------------------------------
 % ELEMENTOS PÓS-TEXTUAIS
