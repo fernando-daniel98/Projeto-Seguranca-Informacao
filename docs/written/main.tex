@@ -371,6 +371,22 @@ As métricas obtidas nessa avaliação cruzada estão resumidas na Tabela~\ref{t
 
 Os resultados demonstram que o classificador treinado exclusivamente no NUAA não generaliza para o CASIA-FASD. A acurácia de 73,13\% oculta um problema sério: todas as 591 imagens reais foram classificadas como falsas, resultando em recall zero e FRR de 100\%. Como a classe “fake” representa cerca de 81\% das amostras, a acurácia elevada decorre apenas do acerto nesses casos. A curva ROC apresenta AUC de 0,4159, inferior à linha aleatória, indicando que as probabilidades atribuídas pelo modelo estão invertidas para o novo domínio. Esse fraco desempenho pode ser explicado pela divergência entre as características texturais das duas bases; o CASIA-FASD incorpora ataques com recortes e reproduções em vídeo cujos artefatos não estão presentes no NUAA. Estudos prévios apontam que métodos baseados em LBP apresentam níveis de certeza distintos dependendo do tipo de ataque e do banco de dados e que não existe uma característica única capaz de discriminar todos os ataques de forma consistente. Portanto, é necessário treinar com dados mais diversos ou adotar descritores mais robustos (por exemplo, histogramas de cor ou \emph{deep features}) para obter generalização satisfatória.
 
+\subsubsection{Treinando no CASIA-FASD e testando no NUAA}
+\label{subsubsec:metodo1-casia-nuaa}
+Após os experimentos com a abordagem inicial, notou-se que o modelo gerado utilizando o \textit{dataset} do NUAA não apresentou generalização em seu método. Por isso, pensou-se em treinar o modelo utilizando o mesmo método, mas com o \textit{dataset} do CASIA-FASD, para então testá-lo no \textit{dataset} do NUAA.
+
+Após a realização do treinamento, notou-se que a melhor época apresentou as seguintes métricas: Acurácia de 90,28\% e AUC-ROC de 0,9676. Ao testar o modelo treinado no \textit{dataset} do NUAA, obteve-se uma acurácia de 85,58\%, precisão de 97,64\%, recall de 76,68\%, FAR de 2,49\%, FRR de 23,32\% e HTER de 12,91\%. A matriz de confusão e a curva ROC podem ser vistas na Figura \ref{fig:metodo1_2-casia-conf-roc}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\linewidth]{figures/confusion_matrix_casia_to_nuaa.png}
+    \includegraphics[width=0.48\linewidth]{figures/roc_curve_casia_to_nuaa.png}
+    \caption{À esquerda, matriz de confusão; à direita, curva ROC do Método 1 (LBP\,+\,SVM) treinado no CASIA-FASD e testado no NUAA.}
+    \label{fig:metodo1_2-casia-conf-roc}
+\end{figure}
+
+Os resultados indicam que o modelo treinado no CASIA-FASD generaliza melhor para o NUAA do que o contrário. A acurácia de 85,58\% e a AUC de 0,9345 sugerem que as características texturais extraídas pelo LBP são mais representativas dos ataques presentes no NUAA quando o modelo é treinado com a diversidade do CASIA-FASD. No entanto, a taxa de rejeição de 23,32\% ainda é elevada, indicando que o classificador tem dificuldade em reconhecer algumas faces reais do NUAA. Isso reforça a necessidade de conjuntos de dados mais abrangentes e técnicas de extração de características mais robustas para alcançar desempenho consistente em cenários do mundo real.
+
 \subsection{Método 2: VGG16}
 \subsubsection{NUAA}
 
@@ -447,6 +463,21 @@ Com um FAR de 1\% e FRR de 98,8\%, essa alteração do dataset de treino mostra 
     \caption{Matriz de confusão método 2 - CASIA-FASD -> NUAA}
     \label{fig:matriz_metodo2_2-casd_nuaa}
 \end{figure}
+
+\subsubsection{Treinando no CASIA-FASD e testando no NUAA}
+Com o mesmo motivo descrito na subseção \ref{subsubsec:metodo1-casia-nuaa}, decidiu-se treinar o modelo VGG16 utilizando o \textit{dataset} do CASIA-FASD, para então testá-lo no \textit{dataset} do NUAA. Após o treinamento, o modelo apresentou uma acurácia de 42,93\% ao ser testado no NUAA, com precisão de 60,00\%, recall de 1,17\%, FAR de 1,05\%, FRR de 98,83\% e HTER de 49,94\%. A matriz de confusão e a curva ROC podem ser vistas na Figura \ref{fig:metodo2_3-casia-nuaa-conf-roc}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\linewidth]{figures/confusion_matrix_metodo2_casiaTonuaa.png}
+    \includegraphics[width=0.48\linewidth]{figures/roc_curve_metodo2_casiaTonuaa.png}
+    \caption{À esquerda, matriz de confusão; à direita, curva ROC do Método 2 (VGG16) treinado no CASIA-FASD e testado no NUAA.}
+    \label{fig:metodo2_3-casia-nuaa-conf-roc}
+\end{figure}
+
+Os resultados para o método 2, ao treinar no CASIA-FASD e testar no NUAA, indicam uma incapacidade significativa do modelo em generalizar entre os dois conjuntos de dados. A acurácia de 42,93\% sugere que o classificador está performando ainda pior do que uma escolha aleatória, o que indica uma forte dependência das características específicas do conjunto de treinamento. O valor absurdamente alto do FRR mostra que o modelo não consegue reconhecer a maioria das faces reais do NUAA, rejeitando incorretamente 98,83\% dos usuários legítimos.
+
+Isso caracteriza um cenário impraticável para aplicações reais, onde a usabilidade é tão crucial quanto a segurança. A incapacidade de generalização pode ser atribuída às diferenças substanciais entre os dois \textit{datasets}, incluindo variações na iluminação, qualidade da imagem, tipos de ataques e diversidade dos sujeitos.
 
 \subsection{Método 3: Histogramas de Cor e SVM}
 
