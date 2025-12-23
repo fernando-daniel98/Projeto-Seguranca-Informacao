@@ -3,6 +3,8 @@ contagem_casia_fasd.png
 dataset*
 __pycache__
 .venv
+./melhor_modelo_vgg16.keras
+./venv
 
 # Ignorando latex
 main.txt
